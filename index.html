@@ -198,6 +198,49 @@ p { color: var(--ink-soft); }
 .dash-actions { display: flex; gap: 8px; margin-top: 4px; }
 
 /* ════════════════════════════════════
+   FITXES IMPRIMIBLES
+════════════════════════════════════ */
+#screen-print { background: #fff; color: #111; max-width: none; padding: 0; }
+.print-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; background: var(--bg2); border-bottom: 1px solid var(--border);
+}
+.print-toolbar .nav-logo { color: var(--ink); }
+.print-toolbar .nav-logo span { color: var(--accent); }
+.print-sheet-wrap { padding: 24px; max-width: 780px; margin: 0 auto; }
+.worksheet-page { background: #fff; color: #111; }
+.worksheet-page + .worksheet-page { margin-top: 40px; padding-top: 40px; border-top: 2px dashed #ccc; }
+.worksheet-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 22px;
+}
+.worksheet-head h2 { font-size: 1.3rem; color: #111; }
+.worksheet-head .wm { font-family: var(--mono); font-size: 0.8rem; color: #444; }
+.worksheet-fields { display: flex; gap: 24px; font-size: 0.85rem; color: #333; margin-bottom: 20px; }
+.worksheet-fields span { border-bottom: 1px solid #999; padding-bottom: 2px; min-width: 140px; display: inline-block; }
+.worksheet-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+  border-top: 1px solid #ddd; border-left: 1px solid #ddd;
+}
+.worksheet-item {
+  display: flex; align-items: center; gap: 8px; font-family: var(--mono);
+  font-size: 1.05rem; padding: 14px 16px; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; color: #111;
+}
+.worksheet-item .n { color: #999; font-size: 0.75rem; width: 18px; flex-shrink: 0; }
+.worksheet-item .blank { display: inline-block; min-width: 50px; border-bottom: 1.5px solid #111; height: 1.3em; margin-left: 4px; }
+.worksheet-item .ans { font-weight: 700; color: var(--accent); margin-left: 4px; }
+.answer-key-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: #111; }
+@media print {
+  body * { visibility: hidden; }
+  #screen-print, #screen-print * { visibility: visible; }
+  #screen-print { position: absolute; top: 0; left: 0; width: 100%; display: block !important; padding: 0; margin: 0; max-width: none; }
+  .print-toolbar, .no-print { display: none !important; }
+  .print-sheet-wrap { padding: 0; max-width: none; }
+  .worksheet-page { page-break-after: always; }
+  .worksheet-page + .worksheet-page { border-top: none; margin-top: 0; padding-top: 0; }
+}
+
+/* ════════════════════════════════════
    SETUP
 ════════════════════════════════════ */
 .setup-body { flex: 1; display: flex; flex-direction: column; gap: 22px; }
@@ -546,6 +589,7 @@ p { color: var(--ink-soft); }
 
   <div class="dash-actions" style="margin-bottom:8px">
     <button class="btn btn-secondary btn-sm" onclick="exportCSV()" style="flex:1">⬇ Exportar progrés (CSV)</button>
+    <button class="btn btn-secondary btn-sm" onclick="goToSetup('print')" style="flex:1">🖨️ Fitxa imprimible</button>
   </div>
 </div>
 
@@ -582,6 +626,16 @@ p { color: var(--ink-soft); }
       </div>
     </div>
 
+    <div id="setup-count-section" style="display:none">
+      <div class="section-label">Nombre d'operacions</div>
+      <div class="time-selector">
+        <button class="time-btn" data-val="10" onclick="selectCount(this)">10</button>
+        <button class="time-btn selected" data-val="20" onclick="selectCount(this)">20</button>
+        <button class="time-btn" data-val="30" onclick="selectCount(this)">30</button>
+        <button class="time-btn" data-val="40" onclick="selectCount(this)">40</button>
+      </div>
+    </div>
+
     <div id="setup-inverse-section">
       <div class="section-label">Tipus de pregunta</div>
       <div class="inverse-toggle" id="inverse-toggle" onclick="toggleInverse()">
@@ -597,8 +651,12 @@ p { color: var(--ink-soft); }
       No tens cap error registrat. Practica primer en mode lliure!
     </div>
 
+    <div id="setup-errors-print" style="display:none;margin-top:-6px">
+      <button class="btn btn-secondary btn-full" onclick="openPrintWorksheet()">🖨️ Genera una fitxa imprimible d'aquests errors</button>
+    </div>
+
     <div class="mt-auto">
-      <button class="btn btn-primary btn-full" id="btn-start-game" onclick="startGame()">Començar →</button>
+      <button class="btn btn-primary btn-full" id="btn-start-game" onclick="handleSetupSubmit()">Començar →</button>
     </div>
   </div>
 </div>
@@ -733,6 +791,20 @@ p { color: var(--ink-soft); }
   </div>
 </div>
 
+<!-- ══════════════════════════════════
+     FITXES IMPRIMIBLES
+══════════════════════════════════ -->
+<div class="screen" id="screen-print">
+  <div class="print-toolbar no-print">
+    <div class="nav-logo">taules<span>×</span> <span style="font-size:0.8rem;color:var(--ink-soft);margin-left:8px">Fitxa imprimible</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" onclick="goTo('screen-dashboard');renderDashboard()">← Enrere</button>
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir / Desar PDF</button>
+    </div>
+  </div>
+  <div class="print-sheet-wrap" id="print-sheet-content"></div>
+</div>
+
 <script>
 // ══════════════════════════════════════════
 // XP / LEVELS
@@ -778,6 +850,7 @@ let currentProfile = null;
 let currentMode = null;
 let setupSelectedTables = [];
 let setupTime = 120;
+let setupCount = 20;
 let setupInverse = false;
 
 // ══════════════════════════════════════════
@@ -981,6 +1054,7 @@ const MODE_META = {
   timer: { tag: 'Contra rellotge', title: 'Contra el temps!', desc: 'Respon el màxim de preguntes possible.' },
   errors: { tag: 'Mode errors', title: 'Repassa els errors', desc: 'Practica les multiplicacions que has fallat.' },
   challenge: { tag: 'Repte progressiu', title: 'Repte progressiu', desc: 'Desbloqueja les taules a mesura que les domines.' },
+  print: { tag: 'Fitxa imprimible', title: 'Genera una fitxa', desc: 'Tria les taules i quantes operacions vols imprimir.' },
 };
 
 function goToSetup(mode) {
@@ -991,34 +1065,53 @@ function goToSetup(mode) {
   document.getElementById('setup-title').textContent = meta.title;
   document.getElementById('setup-desc').textContent = meta.desc;
 
-  const showTables = mode === 'practice' || mode === 'timer';
+  const showTables = mode === 'practice' || mode === 'timer' || mode === 'print';
   document.getElementById('setup-tables-section').style.display = showTables ? '' : 'none';
   document.getElementById('setup-time-section').style.display = mode === 'timer' ? '' : 'none';
+  document.getElementById('setup-count-section').style.display = mode === 'print' ? '' : 'none';
   document.getElementById('setup-errors-empty').style.display = 'none';
-  document.getElementById('setup-inverse-section').style.display = mode !== 'errors' ? '' : 'none';
+  document.getElementById('setup-inverse-section').style.display = (mode !== 'errors' && mode !== 'print') ? '' : 'none';
   document.getElementById('btn-start-game').disabled = false;
+  document.getElementById('btn-start-game').textContent = mode === 'print' ? 'Generar fitxa 🖨️' : 'Començar →';
 
   // Reset inverse toggle
   const tog = document.getElementById('inverse-toggle');
   tog.classList.remove('active');
 
+  document.getElementById('setup-errors-print').style.display = 'none';
   if (mode === 'errors') {
     if (!(currentProfile.errors || []).length) {
       document.getElementById('setup-errors-empty').style.display = '';
       document.getElementById('btn-start-game').disabled = true;
+    } else {
+      document.getElementById('setup-errors-print').style.display = '';
     }
     document.getElementById('setup-inverse-section').style.display = '';
   }
 
   if (showTables) {
-    setupSelectedTables = [];
+    setupSelectedTables = mode === 'print' ? [1,2,3,4,5,6,7,8,9,10] : [];
     renderTableSelectGrid();
-    document.getElementById('btn-start-game').disabled = true;
+    document.getElementById('btn-start-game').disabled = mode === 'print' ? false : true;
     // Show slow button if any slow tables
     const slowTables = getSlowTables(currentProfile);
     document.getElementById('btn-select-slow').style.display = slowTables.length ? '' : 'none';
   }
   goTo('screen-setup');
+}
+
+function handleSetupSubmit() {
+  if (currentMode === 'print') {
+    if (!setupSelectedTables.length) return;
+    openPrintWorksheet({ tables: setupSelectedTables, count: setupCount, useErrors: false });
+  } else {
+    startGame();
+  }
+}
+
+function selectCount(el) {
+  document.querySelectorAll('#setup-count-section .time-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected'); setupCount = parseInt(el.dataset.val);
 }
 
 function renderTableSelectGrid() {
@@ -1482,6 +1575,138 @@ function presNext(isCorrect) {
   document.getElementById('pres-wrong').textContent = presState.wrong;
   document.getElementById('pres-streak').textContent = presState.streak;
   presNewQuestion();
+}
+
+// ══════════════════════════════════════════
+// FITXES IMPRIMIBLES
+// ══════════════════════════════════════════
+const WORKSHEET_DEFAULT_SIZE = 20;
+
+// Construeix una llista d'operacions {a,b}.
+// opts.tables: taules permeses (per defecte totes, 1-10)
+// opts.count: nombre d'operacions (per defecte 20)
+// opts.useErrors: si cal prioritzar els errors reals registrats (per defecte true)
+function buildWorksheetQuestions(p, opts) {
+  const tables = (opts && opts.tables && opts.tables.length) ? opts.tables : [1,2,3,4,5,6,7,8,9,10];
+  const size = (opts && opts.count) || WORKSHEET_DEFAULT_SIZE;
+  const useErrors = !opts || opts.useErrors !== false;
+  const tableSet = new Set(tables);
+
+  const seen = new Set();
+  const list = [];
+  const key = (a, b) => `${a}x${b}`;
+
+  function addPair(a, b) {
+    const k = key(a, b);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    list.push({ a, b });
+    return true;
+  }
+
+  // 1) Errors reals registrats dins les taules triades (prioritat màxima)
+  if (useErrors) {
+    const errPool = shuffle([...(p.errors || [])]).filter(e => tableSet.has(e.a));
+    for (const e of errPool) {
+      if (list.length >= size) break;
+      addPair(e.a, e.b);
+    }
+  }
+
+  // 2) Si en falten, prioritzem les taules triades amb pitjor precisió / més lentes
+  if (list.length < size) {
+    const tablesByWeakness = tables
+      .map(t => {
+        const s = p.tableStats[t];
+        const total = s ? s.correct + s.wrong : 0;
+        const rate = total > 0 ? s.correct / total : 0.5;
+        const slow = isTableSlow(p, t);
+        return { t, rate, slow, total };
+      })
+      .sort((x, y) => (x.slow === y.slow ? x.rate - y.rate : (x.slow ? -1 : 1)));
+
+    let guard = 0;
+    while (list.length < size && guard < 500) {
+      guard++;
+      for (const { t } of tablesByWeakness) {
+        if (list.length >= size) break;
+        const b = Math.floor(Math.random() * 10) + 1;
+        addPair(t, b);
+      }
+    }
+  }
+
+  // 3) Últim recurs: qualsevol combinació possible dins les taules triades
+  let guard2 = 0;
+  const maxPossible = tables.length * 10;
+  while (list.length < size && list.length < maxPossible && guard2 < 500) {
+    guard2++;
+    const t = tables[Math.floor(Math.random() * tables.length)];
+    const b = Math.floor(Math.random() * 10) + 1;
+    addPair(t, b);
+  }
+
+  return shuffle(list).slice(0, size);
+}
+
+// opts opcional: { tables: [1,2,...], count: 20, useErrors: true }
+// Sense opts, genera la fitxa clàssica a partir dels errors del perfil actual.
+function openPrintWorksheet(opts) {
+  const p = currentProfile;
+  if (!p) return;
+  const fresh = getProfile(p.id);
+  if (fresh) currentProfile = fresh;
+
+  const config = opts || { useErrors: true, count: WORKSHEET_DEFAULT_SIZE, tables: [1,2,3,4,5,6,7,8,9,10] };
+  const questions = buildWorksheetQuestions(currentProfile, config);
+  const size = questions.length;
+  const dateStr = new Date().toLocaleDateString('ca-ES');
+  const tableSet = new Set(config.tables || [1,2,3,4,5,6,7,8,9,10]);
+  const usedRealErrors = config.useErrors === false ? 0 :
+    Math.min((currentProfile.errors || []).filter(e => tableSet.has(e.a)).length, size);
+
+  const exerciseItems = questions.map((q, i) =>
+    `<div class="worksheet-item"><span class="n">${i + 1}.</span> ${q.a} × ${q.b} = <span class="blank"></span></div>`
+  ).join('');
+
+  const answerItems = questions.map((q, i) =>
+    `<div class="worksheet-item"><span class="n">${i + 1}.</span> ${q.a} × ${q.b} = <span class="ans">${q.a * q.b}</span></div>`
+  ).join('');
+
+  const tablesLabel = (config.tables && config.tables.length < 10)
+    ? ` (taules del ${[...config.tables].sort((a,b)=>a-b).join(', ')})`
+    : '';
+
+  const note = usedRealErrors > 0
+    ? `Fitxa generada a partir de ${usedRealErrors} error${usedRealErrors === 1 ? '' : 's'} real${usedRealErrors === 1 ? '' : 's'} registrat${usedRealErrors === 1 ? '' : 's'}${size > usedRealErrors ? ' + reforç de les taules més fluixes' : ''}${tablesLabel}.`
+    : `Fitxa de repàs${tablesLabel || ' general'}.`;
+
+  document.getElementById('print-sheet-content').innerHTML = `
+    <div class="worksheet-page">
+      <div class="worksheet-head">
+        <div>
+          <h2>taules× — Fitxa de repàs</h2>
+          <div class="wm">${escHtml(note)}</div>
+        </div>
+        <div class="wm">${dateStr}</div>
+      </div>
+      <div class="worksheet-fields">
+        <div>Nom: <span>${escHtml(currentProfile.name)}</span></div>
+        <div>Data: <span></span></div>
+        <div>Encerts: <span></span> / ${size}</div>
+      </div>
+      <div class="worksheet-grid">${exerciseItems}</div>
+    </div>
+    <div class="worksheet-page">
+      <div class="worksheet-head">
+        <div><h2>taules× — Full de solucions</h2></div>
+        <div class="wm">${escHtml(currentProfile.name)} · ${dateStr}</div>
+      </div>
+      <div class="worksheet-grid">${answerItems}</div>
+    </div>
+  `;
+
+  goTo('screen-print');
 }
 
 // ══════════════════════════════════════════

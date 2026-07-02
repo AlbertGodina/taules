@@ -330,6 +330,7 @@ p { color: var(--ink-soft); }
   border: 1.5px solid var(--accent); display: flex; align-items: center; justify-content: center;
   font-family: var(--mono); font-size: 0.7rem; font-weight: 600; color: var(--accent);
 }
+.mv-dot-hidden { background: transparent; border-style: dashed; }
 .mv-arrow { color: var(--ink-lighter); font-size: 0.7rem; }
 .mv-caption { font-size: 0.72rem; color: var(--ink-soft); text-align: center; }
 .answer-input {
@@ -1849,7 +1850,10 @@ function buildMultVisualHTML(a, b) {
   let total = 0;
   for (let i = 0; i < a; i++) {
     total += b;
-    lineHtml += `<div class="mv-step"><span class="mv-plus">+${b}</span><div class="mv-dot">${total}</div></div>`;
+    const isLast = i === a - 1;
+    const dotClass = isLast ? 'mv-dot mv-dot-hidden' : 'mv-dot';
+    const dotValue = isLast ? '' : total;
+    lineHtml += `<div class="mv-step"><span class="mv-plus">+${b}</span><div class="${dotClass}">${dotValue}</div></div>`;
     if (i < a - 1) lineHtml += `<span class="mv-arrow">→</span>`;
   }
   lineHtml += `</div>`;

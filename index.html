@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Taules × — Practica les multiplicacions</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ══════════════════════════════════════
    TOKENS — LIGHT / DARK
@@ -312,6 +313,25 @@ p { color: var(--ink-soft); }
 .response-bar { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.1s linear, background 0.3s; }
 
 .answer-input-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+
+/* ── VISUAL COMBINAT: quadrícula + salts ── */
+.mv-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; margin-top: -8px; width: 100%;
+}
+.mv-grid { display: inline-grid; gap: 2px; }
+.mv-cell { border-radius: 3px; background: var(--accent-light); border: 1px solid var(--accent); }
+.mv-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; }
+.mv-step { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.mv-step .mv-plus { font-family: var(--mono); font-size: 0.62rem; color: var(--ink-soft); }
+.mv-dot {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent-light);
+  border: 1.5px solid var(--accent); display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 600; color: var(--accent);
+}
+.mv-arrow { color: var(--ink-lighter); font-size: 0.7rem; }
+.mv-caption { font-size: 0.72rem; color: var(--ink-soft); text-align: center; }
 .answer-input {
   width: 140px; padding: 16px; text-align: center;
   border: 2.5px solid var(--border); border-radius: var(--radius-sm);
@@ -690,6 +710,9 @@ p { color: var(--ink-soft); }
     <div class="question-label" id="q-counter">Pregunta 1</div>
     <div class="question-expr" id="question-expr"></div>
 
+    <button class="btn btn-ghost btn-sm" id="btn-toggle-visual" onclick="toggleVisualHint()" style="margin-top:-14px">👁 Veure-ho</button>
+    <div class="mv-panel" id="visual-hint-panel" style="display:none"></div>
+
     <div class="answer-input-wrap">
       <input class="answer-input" id="answer-input" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="?" autocomplete="off">
       <div class="feedback-text" id="feedback-text"></div>
@@ -769,6 +792,9 @@ p { color: var(--ink-soft); }
       <div class="pres-expr" id="pres-expr"></div>
     </div>
 
+    <button class="btn btn-secondary btn-sm" id="pres-btn-toggle-visual" onclick="togglePresVisual()">👁 Mostra la graella</button>
+    <div class="mv-panel" id="pres-visual-panel" style="display:none;max-width:400px"></div>
+
     <div class="pres-answer" id="pres-answer"></div>
 
     <div class="pres-score-board">
@@ -797,11 +823,13 @@ p { color: var(--ink-soft); }
 <div class="screen" id="screen-print">
   <div class="print-toolbar no-print">
     <div class="nav-logo">taules<span>×</span> <span style="font-size:0.8rem;color:var(--ink-soft);margin-left:8px">Fitxa imprimible</span></div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-secondary btn-sm" onclick="goTo('screen-dashboard');renderDashboard()">← Enrere</button>
-      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Imprimir / Desar PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Imprimir</button>
+      <button class="btn btn-primary btn-sm" onclick="downloadWorksheetPDF()">⬇ Descarregar PDF</button>
     </div>
   </div>
+  <div id="pdf-status" class="no-print" style="display:none;padding:0 20px;font-size:0.8rem;color:var(--ink-soft)"></div>
   <div class="print-sheet-wrap" id="print-sheet-content"></div>
 </div>
 
@@ -1226,6 +1254,8 @@ function renderQuestion(q) {
   } else {
     expr.innerHTML = `${q.a} <span class="op">×</span> ${q.b} <span class="op">=</span>`;
   }
+  document.getElementById('visual-hint-panel').style.display = 'none';
+  document.getElementById('btn-toggle-visual').textContent = '👁 Veure-ho';
 }
 
 let responseBarTimer = null;
@@ -1551,6 +1581,11 @@ function presNewQuestion() {
   document.getElementById('pres-correct-btn').style.display = 'none';
   document.getElementById('pres-wrong-btn').style.display = 'none';
   document.getElementById('pres-new-btn').style.display = 'none';
+
+  const presPanel = document.getElementById('pres-visual-panel');
+  if (presPanel.style.display !== 'none') {
+    presPanel.innerHTML = buildMultVisualHTML(presState.currentQ.a, presState.currentQ.b);
+  }
 }
 
 function presReveal() {
@@ -1651,6 +1686,8 @@ function buildWorksheetQuestions(p, opts) {
 
 // opts opcional: { tables: [1,2,...], count: 20, useErrors: true }
 // Sense opts, genera la fitxa clàssica a partir dels errors del perfil actual.
+let currentWorksheet = null;
+
 function openPrintWorksheet(opts) {
   const p = currentProfile;
   if (!p) return;
@@ -1681,6 +1718,10 @@ function openPrintWorksheet(opts) {
     ? `Fitxa generada a partir de ${usedRealErrors} error${usedRealErrors === 1 ? '' : 's'} real${usedRealErrors === 1 ? '' : 's'} registrat${usedRealErrors === 1 ? '' : 's'}${size > usedRealErrors ? ' + reforç de les taules més fluixes' : ''}${tablesLabel}.`
     : `Fitxa de repàs${tablesLabel || ' general'}.`;
 
+  // Guardem l'estat perquè downloadWorksheetPDF() el pugui fer servir
+  // sense haver de re-llegir el DOM.
+  currentWorksheet = { questions, note, name: currentProfile.name, dateStr, size };
+
   document.getElementById('print-sheet-content').innerHTML = `
     <div class="worksheet-page">
       <div class="worksheet-head">
@@ -1707,6 +1748,142 @@ function openPrintWorksheet(opts) {
   `;
 
   goTo('screen-print');
+
+}
+
+// Genera un PDF real (dues pàgines: exercicis + solucions) i el descarrega,
+// sense passar pel diàleg d'impressió del navegador.
+function downloadWorksheetPDF() {
+  const statusEl = document.getElementById('pdf-status');
+  if (!currentWorksheet) return;
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    statusEl.style.display = '';
+    statusEl.textContent = '⚠ No s\'ha pogut carregar el generador de PDF (cal connexió a internet). Prova "🖨️ Imprimir" i tria "Desar com a PDF".';
+    return;
+  }
+  statusEl.style.display = 'none';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 18;
+  const items = currentWorksheet.questions;
+  const rows = Math.ceil(items.length / 2);
+  const rowH = Math.max(9, Math.min(13, (pageH - 85) / rows));
+  const colW = (pageW - marginX * 2) / 2;
+
+  function drawPage(withAnswers) {
+    let y = 20;
+    doc.setTextColor(20, 20, 20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('taules\u00d7 \u2014 ' + (withAnswers ? 'Full de solucions' : 'Fitxa de rep\u00e0s'), marginX, y);
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    const noteLines = doc.splitTextToSize(currentWorksheet.note, pageW - marginX * 2 - 40);
+    doc.text(noteLines, marginX, y);
+    doc.text(currentWorksheet.dateStr, pageW - marginX, y, { align: 'right' });
+    y += noteLines.length * 4 + 6;
+
+    doc.setTextColor(20, 20, 20);
+    doc.setFontSize(10);
+    doc.text('Nom: ' + currentWorksheet.name, marginX, y);
+    if (!withAnswers) {
+      doc.text('Data: ______________', pageW - marginX - 48, y);
+    }
+    y += 6;
+    doc.setDrawColor(210, 210, 210);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 10;
+
+    const startY = y;
+    doc.setFontSize(12);
+    items.forEach((q, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = marginX + col * colW;
+      const iy = startY + row * rowH;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(20, 20, 20);
+      doc.text((i + 1) + '.', x, iy);
+      doc.text(q.a + ' \u00d7 ' + q.b + ' =', x + 8, iy);
+      if (withAnswers) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 77, 0);
+        doc.text(String(q.a * q.b), x + 32, iy);
+      } else {
+        doc.setDrawColor(20, 20, 20);
+        doc.line(x + 32, iy + 1, x + 32 + 18, iy + 1);
+      }
+    });
+  }
+
+  drawPage(false);
+  doc.addPage();
+  drawPage(true);
+
+  const safeName = (currentWorksheet.name || 'alumne').replace(/[^a-zA-Z0-9]+/g, '_');
+  const fileDate = new Date().toISOString().slice(0, 10);
+  doc.save(`taules_fitxa_${safeName}_${fileDate}.pdf`);
+}
+
+// ══════════════════════════════════════════
+// VISUAL DE MULTIPLICACIÓ: quadrícula + salts
+// ══════════════════════════════════════════
+// Combina el model de quadrícula (files × columnes) amb una cadena de
+// salts de comptar (recta numèrica), per veure alhora l'estructura i el procés.
+function buildMultVisualHTML(a, b) {
+  const cell = Math.max(9, Math.min(22, Math.floor(230 / Math.max(a, b))));
+  let gridHtml = `<div class="mv-grid" style="grid-template-columns:repeat(${b},${cell}px)">`;
+  for (let i = 0; i < a * b; i++) {
+    gridHtml += `<div class="mv-cell" style="width:${cell}px;height:${cell}px"></div>`;
+  }
+  gridHtml += `</div>`;
+
+  let lineHtml = `<div class="mv-line">`;
+  let total = 0;
+  for (let i = 0; i < a; i++) {
+    total += b;
+    lineHtml += `<div class="mv-step"><span class="mv-plus">+${b}</span><div class="mv-dot">${total}</div></div>`;
+    if (i < a - 1) lineHtml += `<span class="mv-arrow">→</span>`;
+  }
+  lineHtml += `</div>`;
+
+  return `${gridHtml}${lineHtml}<div class="mv-caption">${a} files de ${b} · comptant de ${b} en ${b}, ${a} vegades</div>`;
+}
+
+function toggleVisualHint() {
+  const panel = document.getElementById('visual-hint-panel');
+  const btn = document.getElementById('btn-toggle-visual');
+  const showing = panel.style.display !== 'none';
+  if (showing) {
+    panel.style.display = 'none';
+    btn.textContent = '👁 Veure-ho';
+  } else {
+    const q = gameState.currentQ;
+    panel.innerHTML = buildMultVisualHTML(q.a, q.b);
+    panel.style.display = 'flex';
+    btn.textContent = '🙈 Amagar';
+  }
+}
+
+function togglePresVisual() {
+  const panel = document.getElementById('pres-visual-panel');
+  const btn = document.getElementById('pres-btn-toggle-visual');
+  const showing = panel.style.display !== 'none';
+  if (showing) {
+    panel.style.display = 'none';
+    btn.textContent = '👁 Mostra la graella';
+  } else {
+    panel.innerHTML = buildMultVisualHTML(presState.currentQ.a, presState.currentQ.b);
+    panel.style.display = 'flex';
+    btn.textContent = '🙈 Amaga la graella';
+  }
 }
 
 // ══════════════════════════════════════════

@@ -1642,7 +1642,8 @@ function buildWorksheetQuestions(p, opts) {
 
   // 1) Errors reals registrats dins les taules triades (prioritat màxima)
   if (useErrors) {
-    const errPool = shuffle([...(p.errors || [])]).filter(e => tableSet.has(e.a));
+    const errPool = [...(p.errors || [])].filter(e => tableSet.has(e.a));
+    shuffle(errPool);
     for (const e of errPool) {
       if (list.length >= size) break;
       addPair(e.a, e.b);
@@ -1682,7 +1683,8 @@ function buildWorksheetQuestions(p, opts) {
     addPair(t, b);
   }
 
-  return shuffle(list).slice(0, size);
+  shuffle(list);
+  return list.slice(0, size);
 }
 
 // opts opcional: { tables: [1,2,...], count: 20, useErrors: true }

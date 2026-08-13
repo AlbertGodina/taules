@@ -219,3 +219,228 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
     <button class="btn verd" id="p-okbtn">✅ Correcte</button>
     <button class="btn vermell" id="p-kobtn">❌ Error</button>
     <button class="btn" id="p-next">Pròxima →</button>
+  </div>
+  <h3>Taules de la sessió</h3>
+  <div id="p-taules" class="chips"></div>
+</section>
+
+<!-- ══════════ FITXA IMPRIMIBLE ══════════ -->
+<section id="sc-fitxa" class="screen">
+  <header class="cap no-print"><span class="logo">taules<span class="x">×</span></span><button class="btn petit secundari" id="f-enrere">← Enrere</button></header>
+  <h2 class="no-print">Fitxa imprimible</h2>
+  <div class="row no-print"><button class="btn" id="f-imprimir">🖨️ Imprimir</button><button class="btn secundari" id="f-pdf">⬇ Descarregar PDF</button></div>
+  <div id="fitxa-container">
+    <h2 class="fitxa-titol">Fitxa de repàs — <span id="f-nom"></span></h2>
+    <p class="fitxa-data" id="f-data"></p>
+    <div id="fitxa-contingut" class="fitxa-grid"></div>
+  </div>
+</section>
+
+<script src="srs.js"></script>
+<script src="ui-srs.js"></script>
+<script>
+'use strict';
+/* ---------- utilitats ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const carrega=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const desa=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const tria=a=>a[Math.floor(Math.random()*a.length)];
+const R10=()=>1+Math.floor(Math.random()*10);
+const LSK='taulesx.perfils.v1';
+
+let perfils=carrega(LSK,[]);
+let pid=null, modeSel=null;
+let cfg={taules:[1,2,3,4,5,6,7,8,9,10],min:2,ops:20,invers:false};
+let sessio=null, preguntaActual=null, tInici=0, ajudaUsada=false, input='', total=0, fi=0, timer=null, taulaRepteActual=null;
+
+const ORDRE=[2,5,10,4,3,6,7,8,9,1];
+const TITOLS={lliure:'Pràctica lliure',rellotge:'Contra rellotge',repas:'Repàs intel·ligent',repte:'Repte progressiu',presentacio:'Mode presentació'};
+const VIS={lliure:['taules','ops','tipus'],rellotge:['taules','temps','tipus'],repas:['taules'],repte:[],presentacio:['taules']};
+
+/* ---------- pantalles i tema ---------- */
+function mostra(id){$$('.screen').forEach(s=>s.classList.remove('activa'));$(id).classList.add('activa');window.scrollTo(0,0);}
+if(carrega('taulesx.fosc',false))document.body.classList.add('fosc');
+$$('.btn-tema').forEach(b=>b.onclick=()=>{document.body.classList.toggle('fosc');desa('taulesx.fosc',document.body.classList.contains('fosc'));});
+
+/* ---------- perfils ---------- */
+const perfil=()=>perfils.find(p=>p.id===pid);
+function renderPerfils(){const c=$('#llista-perfils');c.innerHTML='';
+ perfils.forEach(p=>{const b=document.createElement('button');b.className='btn secundari perfil';
+  b.innerHTML=`<strong>${p.nom}</strong><small>⭐ ${p.punts} pts</small>`;b.onclick=()=>entra(p.id);c.appendChild(b);});}
+function entra(id){pid=id;UI.setPerfil(id);renderInici();mostra('#sc-inici');}
+$('#btn-nou-perfil').onclick=()=>{$('#form-perfil').hidden=false;$('#inp-nom').focus();};
+$('#btn-cancela').onclick=()=>{$('#form-perfil').hidden=true;};
+$('#btn-crear').onclick=()=>{const nom=$('#inp-nom').value.trim();if(!nom)return;
+ perfils.push({id:'p'+Date.now(),nom,punts:0,encerts:0,millorRatxa:0,record:0,rellotge20:false,desblocades:[],medalles:[]});
+ desa(LSK,perfils);$('#inp-nom').value='';$('#form-perfil').hidden=true;renderPerfils();};
+$('#btn-perfils').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
+
+/* ---------- inici ---------- */
+function estatTaula(t){let dom=0,nov=0,len=0;
+ for(let b=1;b<=10;b++){const e=SRS.estat(pid,t,b);if(e==='dominada')dom++;else if(e==='nova')nov++;else if(e==='lenta')len++;}
+ if(dom===10)return 'dominada'; if(nov===10)return 'nova'; if(len>0)return 'lenta'; return 'practica';}
+const MEDALLES=[['🥉','Primera taula dominada',s=>s.dom>=1],['🥈','Cinc taules dominades',s=>s.dom>=5],
+ ['🥇','Totes les taules',s=>s.dom>=10],['🔥','Ratxa de 10',s=>s.r>=10],['⚡','100 encerts',s=>s.e>=100],
+ ['⏱️','20 encerts contra rellotge',s=>s.rel]];
+function renderMedalles(){const p=perfil();let dom=0;for(let t=1;t<=10;t++)if(estatTaula(t)==='dominada')dom++;
+ const s={dom,r:p.millorRatxa,e:p.encerts,rel:p.rellotge20};const c=$('#medalles');c.innerHTML='';
+ MEDALLES.forEach(([ic,nom,cond])=>{if(cond(s)&&!p.medalles.includes(nom))p.medalles.push(nom);
+  const sp=document.createElement('span');sp.title=nom;sp.textContent=ic;sp.className=p.medalles.includes(nom)?'':'off';c.appendChild(sp);});
+ desa(LSK,perfils);}
+function renderInici(){const p=perfil();$('#hola').textContent=`Hola, ${p.nom}!`;
+ $('#st-nivell').textContent=Math.floor(p.punts/100);$('#st-punts').textContent=p.punts;
+ $('#st-encerts').textContent=p.encerts;$('#st-ratxa').textContent=p.millorRatxa;
+ const g=$('#graella-progres');g.innerHTML='';
+ for(let t=1;t<=10;t++){const d=document.createElement('div');d.className='est-'+estatTaula(t);d.textContent=t;g.appendChild(d);}
+ renderMedalles();UI.actualitza();}
+
+/* ---------- configuració ---------- */
+const taulaRepte=()=>ORDRE.find(t=>!perfil().desblocades.includes(t))||null;
+$$('.mode-card').forEach(b=>b.onclick=()=>obreConfig(b.dataset.mode));
+function obreConfig(m){modeSel=m;$('#config-titol').textContent=TITOLS[m];
+ const v=VIS[m];$('#cfg-taules').hidden=!v.includes('taules');$('#cfg-temps').hidden=!v.includes('temps');
+ $('#cfg-ops').hidden=!v.includes('ops');$('#cfg-tipus').hidden=!v.includes('tipus');
+ $('#repas-resum').hidden=m!=='repas';
+ if(m==='repte'){const t=taulaRepte();$('#config-titol').textContent=t?`Repte: taula del ${t}`:'Repte completat 🏆';}
+ renderChips();UI.actualitza();mostra('#sc-config');}
+function renderChips(){const c=$('#chips-taules');c.innerHTML='';
+ for(let t=1;t<=10;t++){const b=document.createElement('button');b.className='chip'+(cfg.taules.includes(t)?' actiu':'');b.textContent=t;
+  b.onclick=()=>{cfg.taules=cfg.taules.includes(t)?cfg.taules.filter(x=>x!==t):[...cfg.taules,t].sort((a,b)=>a-b);renderChips();};c.appendChild(b);}}
+$('#btn-totes').onclick=()=>{cfg.taules=[1,2,3,4,5,6,7,8,9,10];renderChips();};
+$('#btn-cap').onclick=()=>{cfg.taules=[];renderChips();};
+$('#btn-lentes').onclick=()=>{const l=UI.taulesLentes();if(!l.length){alert('Cap taula marcada com a lenta ara mateix 🎉');return;}cfg.taules=l;renderChips();};
+$$('#chips-temps .chip').forEach(b=>b.onclick=()=>{cfg.min=+b.dataset.min;$$('#chips-temps .chip').forEach(x=>x.classList.toggle('actiu',x===b));});
+$$('#chips-ops .chip').forEach(b=>b.onclick=()=>{cfg.ops=+b.dataset.ops;$$('#chips-ops .chip').forEach(x=>x.classList.toggle('actiu',x===b));});
+$('#chk-invers').onchange=e=>cfg.invers=e.target.checked;
+$('#btn-torna-inici').onclick=()=>{renderInici();mostra('#sc-inici');};
+
+/* ---------- joc ---------- */
+$('#btn-comenca').onclick=comenca;
+function comenca(){
+ if(modeSel==='presentacio'){iniciaPresentacio();return;}
+ if(modeSel==='repte'){taulaRepteActual=taulaRepte();if(!taulaRepteActual){alert('Ja tens totes les taules desblocades 🏆');return;}total=10;}
+ else if(modeSel==='repas'){const d=SRS.dueCount(pid),n=SRS.noves(pid,cfg.taules,5).length;
+   if(d===0&&n===0){alert('🎉 Cap repàs pendent ara mateix. Bona feina!');return;}total=Math.min(20,d+n);}
+ else if(modeSel==='lliure'){if(!cfg.taules.length){alert('Tria com a mínim una taula.');return;}total=cfg.ops;}
+ else if(modeSel==='rellotge'){if(!cfg.taules.length){alert('Tria com a mínim una taula.');return;}
+   total=Infinity;fi=Date.now()+cfg.min*60000;$('#j-temps').hidden=false;arrancaTimer();}
+ if(modeSel!=='rellotge')$('#j-temps').hidden=true;
+ UI.setMode(modeSel,cfg.taules);
+ sessio={punts:0,encerts:0,errors:0,ratxa:0,millor:0,temps:{},n:0};
+ mostra('#sc-joc');pintaCapJoc();
+ if(modeSel==='repas'){const pr=UI.primeraPregunta();if(pr){serveix(pr);return;}}
+ seguent();}
+const fmt=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function arrancaTimer(){pararTimer();timer=setInterval(()=>{const rest=Math.max(0,fi-Date.now());
+ $('#j-temps').textContent='⏱ '+fmt(rest);$('#j-barra').style.width=(100*(1-rest/(cfg.min*60000)))+'%';
+ if(rest<=0){pararTimer();fiSessio();}},250);}
+function pararTimer(){if(timer){clearInterval(timer);timer=null;}}
+function serveix(p){preguntaActual=p;tInici=Date.now();ajudaUsada=false;input='';sessio.n++;
+ $('#j-num').textContent='PREGUNTA '+sessio.n;
+ if(total!==Infinity)$('#j-barra').style.width=Math.min(100,100*(sessio.n-1)/total)+'%';
+ const r=p.a*p.b;
+ $('#j-pregunta').innerHTML=p.tipus==='inversa'
+  ?`<span class="inc">?</span><span>×</span><span>${p.b}</span><span>=</span><span>${r}</span>`
+  :`<span>${p.a}</span><span>×</span><span>${p.b}</span><span>=</span><span class="inc">?</span>`;
+ $('#j-ajuda').hidden=true;$('#btn-veure').hidden=false;pintaResposta();}
+function pintaResposta(){const el=$('#j-resposta');el.textContent=input||'?';el.className='resposta';}
+$('#btn-veure').onclick=()=>{ajudaUsada=true;$('#j-ajuda').hidden=false;$('#j-ajuda').innerHTML=htmlAjuda(preguntaActual);$('#btn-veure').hidden=true;};
+function htmlAjuda(p){const a=p.a,b=p.b;
+ let m='<div class="matriu">';for(let r=0;r<b;r++)m+='<div class="fila">'+'<i></i>'.repeat(a)+'</div>';m+='</div>';
+ let s='<div class="salts">';for(let r=1;r<=b;r++){s+=`<span class="salt">${a*r}</span>`;if(r<b)s+=`<span class="fletxa"><em>+${a}</em><span>→</span></span>`;}s+='</div>';
+ return m+s+`<p class="ajuda-text">${b} files de ${a} · comptant de ${a} en ${a}, ${b} vegades</p>`;}
+/* teclat */
+['1','2','3','4','5','6','7','8','9','⌫','0','OK'].forEach(k=>{const b=document.createElement('button');b.textContent=k;b.onclick=()=>tecla(k);$('#j-teclat').appendChild(b);});
+function tecla(k){if(k==='OK')return avalua();if(k==='⌫')input=input.slice(0,-1);else if(input.length<3)input+=k;pintaResposta();}
+document.addEventListener('keydown',e=>{if(!$('#sc-joc').classList.contains('activa'))return;
+ if(/^[0-9]$/.test(e.key))tecla(e.key);else if(e.key==='Backspace')tecla('⌫');else if(e.key==='Enter')tecla('OK');});
+function avalua(){
+ if(input==='')return;
+ const p=preguntaActual,correcta=p.tipus==='inversa'?p.a:p.a*p.b,val=+input,ok=val===correcta,ms=Date.now()-tInici;
+ if(ok){sessio.encerts++;sessio.ratxa++;sessio.millor=Math.max(sessio.millor,sessio.ratxa);sessio.punts+=10+(sessio.ratxa>=3?5:0);}
+ else{sessio.errors++;sessio.ratxa=0;}
+ const t=p.tipus==='inversa'?p.b:p.a;(sessio.temps[t]=sessio.temps[t]||[]).push(ms);
+ pintaResposta();$('#j-resposta').classList.add(ok?'ok':'ko');if(!ok)$('#j-resposta').textContent=correcta;
+ pintaCapJoc();
+ UI.resposta({a:p.a,b:p.b,tipus:p.tipus},{ok,ms,ajuda:ajudaUsada});
+ setTimeout(seguent,ok?350:900);}
+function pintaCapJoc(){$('#j-punts').textContent=sessio.punts;
+ const d=$('#j-ratxa');d.innerHTML='';for(let i=0;i<5;i++){const dot=document.createElement('i');if(i<Math.min(5,sessio.ratxa))dot.className='plena';d.appendChild(dot);}}
+function seguent(){
+ if(modeSel==='rellotge'&&Date.now()>=fi)return fiSessio();
+ if(sessio.n>=total)return fiSessio();
+ const p=UI.properaPregunta()||genera();
+ if(!p)return fiSessio();
+ serveix(p);}
+function genera(){if(modeSel==='repas')return null;
+ const t=modeSel==='repte'?taulaRepteActual:tria(cfg.taules);
+ return {a:t,b:R10(),tipus:cfg.invers?'inversa':'directa'};}
+$('#btn-surt').onclick=()=>{if(sessio&&(sessio.encerts+sessio.errors)>0)fiSessio();else{renderInici();mostra('#sc-inici');}};
+
+/* ---------- resultats ---------- */
+function fiSessio(){pararTimer();
+ const p=perfil();
+ p.punts+=sessio.punts;p.encerts+=sessio.encerts;p.millorRatxa=Math.max(p.millorRatxa,sessio.millor);
+ if(modeSel==='rellotge'&&sessio.encerts>=20)p.rellotge20=true;
+ let desbloc=null;
+ if(modeSel==='repte'){const tot=sessio.encerts+sessio.errors,prec=tot?sessio.encerts/tot:0;
+  if(tot>=10&&prec>=0.8){p.desblocades.push(taulaRepteActual);desbloc=taulaRepteActual;}}
+ const record=sessio.punts>p.record;if(record)p.record=sessio.punts;
+ desa(LSK,perfils);
+ $('#r-mode').textContent=TITOLS[modeSel];$('#r-punts').textContent=sessio.punts;
+ $('#r-record').hidden=!record;$('#r-desbloc').hidden=!desbloc;
+ if(desbloc)$('#r-desbloc').textContent=`🏆 Has desblocat la taula del ${desbloc}!`;
+ $('#r-encerts').textContent=sessio.encerts;$('#r-errors').textContent=sessio.errors;
+ $('#r-ratxa').textContent=sessio.millor;
+ const tot=sessio.encerts+sessio.errors;
+ $('#r-prec').textContent=(tot?Math.round(100*sessio.encerts/tot):0)+'%';
+ const tt=$('#r-temps-taula');tt.innerHTML='';
+ Object.entries(sessio.temps).sort((a,b)=>a[0]-b[0]).forEach(([t,arr])=>{
+  const mit=arr.reduce((s,x)=>s+x,0)/arr.length;
+  tt.innerHTML+=`<div class="trow"><span>Taula del ${t}</span><b>${(mit/1000).toFixed(1).replace('.',',')} s</b></div>`;});
+ UI.actualitza();mostra('#sc-resultats');}
+$('#btn-tauler').onclick=()=>{renderInici();mostra('#sc-inici');};
+$('#btn-torna').onclick=()=>comenca();
+$('#btn-repassa').onclick=()=>{modeSel='repas';cfg.taules=[1,2,3,4,5,6,7,8,9,10];comenca();};
+
+/* ---------- presentació ---------- */
+let pPreg=null,pStats=null;
+function iniciaPresentacio(){UI.setMode('presentacio',cfg.taules.length?cfg.taules:[1,2,3,4,5,6,7,8,9,10]);
+ pStats={ok:0,ko:0,ratxa:0,set:new Set()};mostra('#sc-presentacio');pNova();}
+function pNova(){pPreg={a:tria(cfg.taules.length?cfg.taules:[1,2,3,4,5,6,7,8,9,10]),b:R10(),tipus:'directa'};
+ pStats.set.add(pPreg.a);
+ $('#p-pregunta').innerHTML=`<span>${pPreg.a}</span><span>×</span><span>${pPreg.b}</span><span>=</span><span class="inc">?</span>`;
+ $('#p-ajuda').hidden=true;pintaP();renderPTaules();}
+function pMostra(){ $('#p-ajuda').hidden=false;$('#p-ajuda').innerHTML=`<p class="resultat">${pPreg.a*pPreg.b}</p>`+htmlAjuda(pPreg);}
+$('#p-mostra').onclick=pMostra;
+$('#p-graella').onclick=()=>{const el=$('#p-ajuda');if(el.hidden)pMostra();else el.hidden=true;};
+$('#p-okbtn').onclick=()=>{pStats.ok++;pStats.ratxa++;pNova();};
+$('#p-kobtn').onclick=()=>{pStats.ko++;pStats.ratxa=0;pNova();};
+$('#p-next').onclick=()=>pNova();
+$('#p-sortir').onclick=()=>{renderInici();mostra('#sc-inici');};
+function pintaP(){$('#p-ok').textContent=pStats.ok;$('#p-ko').textContent=pStats.ko;$('#p-ratxa').textContent=pStats.ratxa;}
+function renderPTaules(){const c=$('#p-taules');c.innerHTML='';[...pStats.set].sort((a,b)=>a-b).forEach(t=>{const s=document.createElement('span');s.className='chip actiu';s.textContent=t;c.appendChild(s);});}
+
+/* ---------- fitxa i CSV ---------- */
+$('#btn-fitxa').onclick=obreFitxa;
+function obreFitxa(){let fets=UI.fetsFitxa();
+ if(!fets.length){const pool=[1,2,3,4,5,6,7,8,9,10].filter(t=>estatTaula(t)!=='dominada');
+  const base=pool.length?pool:[1,2,3,4,5,6,7,8,9,10];fets=[];
+  for(let i=0;i<20;i++)fets.push({a:tria(base),b:R10(),tipus:'directa'});}
+ const c=$('#fitxa-contingut');c.innerHTML='';
+ fets.forEach(f=>{const d=document.createElement('div');d.className='fitxa-item';
+  d.textContent=f.tipus==='inversa'?`___ × ${f.b} = ${f.a*f.b}`:`${f.a} × ${f.b} = ____`;c.appendChild(d);});
+ $('#f-nom').textContent=perfil().nom;$('#f-data').textContent=new Date().toLocaleDateString('ca-ES');
+ mostra('#sc-fitxa');}
+$('#f-imprimir').onclick=()=>window.print();
+$('#f-pdf').onclick=()=>window.print();
+$('#f-enrere').onclick=()=>{renderInici();mostra('#sc-inici');};
+$('#btn-csv').onclick=()=>{const blob=new Blob(['\uFEFF'+UI.csvProgres()],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`progres-${perfil().nom}.csv`;a.click();};
+
+/* ---------- inici ---------- */
+SRS.init();
+renderPerfils();
+</script>
+</body>
+</html>

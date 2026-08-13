@@ -48,11 +48,10 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .est-practica{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff}
 .est-lenta{background:var(--card)!important;border-color:var(--accent)!important;color:var(--accent)}
 .est-nova{opacity:.45}
-.metalles span{font-size:1.7rem;margin-right:12px}
-.metalles span.off{filter:grayscale(1);opacity:.3}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1px solid var(--linia);background:var(--card);color:var(--tinta);border-radius:999px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:.95rem}
 .chip.actiu{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:disabled{opacity:.5;cursor:not-allowed}
 .repas-resum{background:var(--card);border:1px solid var(--linia);border-radius:12px;padding:12px;text-align:center;margin:10px 0}
 .pills{background:var(--card);border:1px solid var(--linia);border-radius:999px;padding:6px 14px;font-weight:800}
 .ratxa-row{display:flex;align-items:center;gap:12px;margin:10px 0}
@@ -65,8 +64,13 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .pregunta.gran{font-size:4rem}
 .resultat{font-size:2rem;font-weight:800;color:var(--verd);margin:.2em 0}
 .resposta{max-width:320px;margin:14px auto;text-align:center;font-size:2rem;font-weight:800;border:3px solid var(--linia);border-radius:16px;padding:14px;background:var(--card)}
-.resposta.ok{border-color:var(--verd);color:var(--verd)}
-.resposta.ko{border-color:var(--vermell);color:var(--vermell)}
+.resposta.ok{border-color:var(--verd);color:var(--verd);background:rgba(47,158,110,.15)}
+.resposta.ko{border-color:var(--vermell);color:var(--vermell);background:rgba(192,57,43,.12)}
+.feedback{max-width:320px;margin:12px auto;padding:14px 16px;border-radius:14px;text-align:center;font-weight:800;font-size:1.05rem;animation:pop .25s ease;cursor:pointer}
+.feedback small{font-weight:600;opacity:.8;font-size:.7rem;display:block;margin-top:4px}
+.fb-ok{background:var(--verd);color:#fff}
+.fb-ko{background:var(--vermell);color:#fff;animation:shake .45s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 .teclat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:320px;margin:10px auto}
 .teclat button{padding:16px 0;font-size:1.25rem;font-weight:700;border-radius:14px;border:1px solid var(--linia);background:var(--card);color:var(--tinta);cursor:pointer}
 .teclat button:last-child{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -80,6 +84,16 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .ajuda-text{opacity:.8;margin:10px 0 0}
 .record{color:var(--verd);font-weight:800;text-align:center}
 .trow{display:flex;justify-content:space-between;border-bottom:1px solid var(--linia);padding:8px 2px}
+.metalles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.medalla{background:var(--card);border:1px solid var(--linia);border-radius:14px;padding:12px 6px;text-align:center;display:flex;flex-direction:column;gap:4px;box-shadow:var(--ombra)}
+.medalla .m-ic{font-size:1.9rem}
+.medalla b{font-size:.8rem}
+.medalla small{opacity:.7;font-size:.68rem;line-height:1.2}
+.medalla.off{opacity:.6}
+.medalla.off .m-ic{filter:grayscale(1);opacity:.6}
+.m-prog{font-style:normal;font-size:.7rem;color:var(--accent);font-weight:800}
+.avatar{font-size:2rem;background:var(--card);border:1px solid var(--linia);border-radius:50%;width:56px;height:56px;cursor:pointer;box-shadow:var(--ombra)}
+.nova-medalla{background:var(--verd);color:#fff;border-radius:12px;padding:10px 14px;margin:8px 0;text-align:center;font-weight:800;animation:pop .4s ease}
 .switch{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
 .fitxa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 28px}
 .fitxa-item{border-bottom:1px solid #bbb;padding:12px 0;font-size:1.4rem;font-family:ui-monospace,Menlo,monospace}
@@ -114,7 +128,11 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 <section id="sc-inici" class="screen">
   <header class="cap"><span class="logo">taules<span class="x">×</span></span>
     <span class="row"><button class="btn-icon btn-tema">🌙</button><button class="btn petit secundari" id="btn-perfils">← Perfils</button></span></header>
-  <h2 id="hola">Hola!</h2>
+  <div class="row" style="align-items:center;gap:12px">
+    <button id="btn-avatar" class="avatar">🙂</button>
+    <div><h2 id="hola" style="margin:0">Hola!</h2><p id="nivell-titol" class="mono" style="margin:2px 0 0"></p></div>
+  </div>
+  <div id="tria-avatar" class="card" hidden></div>
   <div class="stats4">
     <div><b id="st-nivell">0</b><span>Nivell</span></div>
     <div><b id="st-punts">0</b><span>Punts</span></div>
@@ -178,6 +196,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   <div class="centre"><button class="btn secundari petit" id="btn-veure">👁 Veure-ho</button></div>
   <div id="j-ajuda" class="ajuda" hidden></div>
   <div id="j-resposta" class="resposta">?</div>
+  <div id="j-feedback" class="feedback" hidden></div>
   <div id="j-teclat" class="teclat"></div>
 </section>
 
@@ -187,6 +206,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   <h2 class="centre"><b id="r-punts">0</b> punts aconseguits</h2>
   <p id="r-record" class="record" hidden>🏆 Nou rècord!</p>
   <p id="r-desbloc" class="record" hidden></p>
+  <div id="r-medalles" hidden></div>
   <div class="stats4">
     <div><b id="r-encerts">0</b><span>✅ Encerts</span></div>
     <div><b id="r-errors">0</b><span>❌ Errors</span></div>
@@ -251,7 +271,7 @@ const LSK='taulesx.perfils.v1';
 let perfils=carrega(LSK,[]);
 let pid=null, modeSel=null;
 let cfg={taules:[1,2,3,4,5,6,7,8,9,10],min:2,ops:20,invers:false};
-let sessio=null, preguntaActual=null, tInici=0, ajudaUsada=false, input='', total=0, fi=0, timer=null, taulaRepteActual=null;
+let sessio=null, preguntaActual=null, tInici=0, ajudaUsada=false, input='', total=0, fi=0, timer=null, taulaRepteActual=null, esperant=null;
 
 const ORDRE=[2,5,10,4,3,6,7,8,9,1];
 const TITOLS={lliure:'Pràctica lliure',rellotge:'Contra rellotge',repas:'Repàs intel·ligent',repte:'Repte progressiu',presentacio:'Mode presentació'};
@@ -275,20 +295,50 @@ $('#btn-crear').onclick=()=>{const nom=$('#inp-nom').value.trim();if(!nom)return
  desa(LSK,perfils);$('#inp-nom').value='';$('#form-perfil').hidden=true;renderPerfils();};
 $('#btn-perfils').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
 
-/* ---------- inici ---------- */
+/* ---------- inici: estat, medalles, avatars, nivells ---------- */
 function estatTaula(t){let dom=0,nov=0,len=0;
  for(let b=1;b<=10;b++){const e=SRS.estat(pid,t,b);if(e==='dominada')dom++;else if(e==='nova')nov++;else if(e==='lenta')len++;}
  if(dom===10)return 'dominada'; if(nov===10)return 'nova'; if(len>0)return 'lenta'; return 'practica';}
-const MEDALLES=[['🥉','Primera taula dominada',s=>s.dom>=1],['🥈','Cinc taules dominades',s=>s.dom>=5],
- ['🥇','Totes les taules',s=>s.dom>=10],['🔥','Ratxa de 10',s=>s.r>=10],['⚡','100 encerts',s=>s.e>=100],
- ['⏱️','20 encerts contra rellotge',s=>s.rel]];
-function renderMedalles(){const p=perfil();let dom=0;for(let t=1;t<=10;t++)if(estatTaula(t)==='dominada')dom++;
- const s={dom,r:p.millorRatxa,e:p.encerts,rel:p.rellotge20};const c=$('#medalles');c.innerHTML='';
- MEDALLES.forEach(([ic,nom,cond])=>{if(cond(s)&&!p.medalles.includes(nom))p.medalles.push(nom);
-  const sp=document.createElement('span');sp.title=nom;sp.textContent=ic;sp.className=p.medalles.includes(nom)?'':'off';c.appendChild(sp);});
- desa(LSK,perfils);}
-function renderInici(){const p=perfil();$('#hola').textContent=`Hola, ${p.nom}!`;
- $('#st-nivell').textContent=Math.floor(p.punts/100);$('#st-punts').textContent=p.punts;
+const dom=()=>{let n=0;for(let t=1;t<=10;t++)if(estatTaula(t)==='dominada')n++;return n;};
+const MEDALLES=[
+ {id:'enc10',ic:'🌱',nom:'Primers passos',desc:'10 encerts totals',obj:10,val:p=>p.encerts},
+ {id:'enc100',ic:'⚡',nom:'Cent encerts',desc:'100 encerts totals',obj:100,val:p=>p.encerts},
+ {id:'enc500',ic:'🚀',nom:'Màquina del ×',desc:'500 encerts totals',obj:500,val:p=>p.encerts},
+ {id:'rat5',ic:'🔥',nom:'En ratxa',desc:'Ratxa de 5 encerts',obj:5,val:p=>p.millorRatxa},
+ {id:'rat10',ic:'☄️',nom:'Imparable',desc:'Ratxa de 10 encerts',obj:10,val:p=>p.millorRatxa},
+ {id:'rat20',ic:'🌋',nom:'Erupció',desc:'Ratxa de 20 encerts',obj:20,val:p=>p.millorRatxa},
+ {id:'taula1',ic:'🥉',nom:'Primera taula',desc:'Domina 1 taula',obj:1,val:()=>dom()},
+ {id:'taula5',ic:'🥈',nom:'Mitja feina',desc:'Domina 5 taules',obj:5,val:()=>dom()},
+ {id:'taula10',ic:'🥇',nom:'Campió del ×',desc:'Domina les 10 taules',obj:10,val:()=>dom()},
+ {id:'perf',ic:'🎯',nom:'Sense errors',desc:'Sessió de 10+ sense cap error',obj:1,val:p=>p.perfectes||0},
+ {id:'rell',ic:'⏱️',nom:'Contra el temps',desc:'20 encerts en mode rellotge',obj:1,val:p=>p.rellotge20?1:0},
+ {id:'repas',ic:'🧠',nom:'Bona memòria',desc:'Completa 5 repassos',obj:5,val:p=>p.repAssos||0},
+];
+function comprovaMedalles(){const p=perfil();const noves=[];
+ MEDALLES.forEach(m=>{if(m.val(p)>=m.obj&&!p.medalles.includes(m.id)){p.medalles.push(m.id);noves.push(m);}});
+ if(noves.length)desa(LSK,perfils);return noves;}
+function renderMedalles(){const p=perfil();const c=$('#medalles');c.innerHTML='';
+ MEDALLES.forEach(m=>{const te=p.medalles.includes(m.id);const v=Math.min(m.obj,m.val(p));
+  const d=document.createElement('div');d.className='medalla'+(te?'':' off');
+  d.innerHTML=`<span class="m-ic">${te?m.ic:'🔒'}</span><b>${m.nom}</b><small>${m.desc}</small>`+(te?'':`<i class="m-prog">${v}/${m.obj}</i>`);
+  c.appendChild(d);});}
+const NIVELLS=[[0,'Aprenent'],[2,'Calculista'],[5,'Aspirant a crack'],[10,'Crack de les taules'],[20,'Mestre del ×'],[40,'Llegenda del ×']];
+const nivellTitol=n=>{let t=NIVELLS[0][1];NIVELLS.forEach(([lv,nom])=>{if(n>=lv)t=nom;});return t;};
+const AVATARS=[['🙂',0,'de bon inici'],['😎',2,'amb 2 medalles'],['🦊',4,'amb 4 medalles'],['🐯',7,'amb 7 medalles'],['🦄',10,'amb 10 medalles'],['👑',12,'amb totes les medalles']];
+$('#btn-avatar').onclick=()=>{const c=$('#tria-avatar');if(!c.hidden){c.hidden=true;return;}
+ const p=perfil();c.hidden=false;c.innerHTML='<h4>Tria el teu avatar</h4><div class="chips"></div>';
+ const wrap=c.querySelector('.chips');
+ AVATARS.forEach(([ic,req,nom])=>{const b=document.createElement('button');const te=p.medalles.length>=req;
+  b.className='chip'+(((p.avatar||'🙂')===ic)&&te?' actiu':'');b.disabled=!te;
+  b.textContent=te?`${ic} ${nom}`:`🔒 ${nom}`;
+  if(te)b.onclick=()=>{p.avatar=ic;desa(LSK,perfils);$('#btn-avatar').textContent=ic;c.hidden=true;};
+  wrap.appendChild(b);});};
+function renderInici(){const p=perfil();comprovaMedalles();
+ $('#btn-avatar').textContent=p.avatar||'🙂';
+ $('#hola').textContent=`Hola, ${p.nom}!`;
+ const nv=Math.floor(p.punts/100);
+ $('#st-nivell').textContent=nv;$('#nivell-titol').textContent=`Nivell ${nv} · ${nivellTitol(nv)}`;
+ $('#st-punts').textContent=p.punts;
  $('#st-encerts').textContent=p.encerts;$('#st-ratxa').textContent=p.millorRatxa;
  const g=$('#graella-progres');g.innerHTML='';
  for(let t=1;t<=10;t++){const d=document.createElement('div');d.className='est-'+estatTaula(t);d.textContent=t;g.appendChild(d);}
@@ -342,7 +392,7 @@ function serveix(p){preguntaActual=p;tInici=Date.now();ajudaUsada=false;input=''
  $('#j-pregunta').innerHTML=p.tipus==='inversa'
   ?`<span class="inc">?</span><span>×</span><span>${p.b}</span><span>=</span><span>${r}</span>`
   :`<span>${p.a}</span><span>×</span><span>${p.b}</span><span>=</span><span class="inc">?</span>`;
- $('#j-ajuda').hidden=true;$('#btn-veure').hidden=false;pintaResposta();}
+ $('#j-ajuda').hidden=true;$('#btn-veure').hidden=false;$('#j-feedback').hidden=true;pintaResposta();}
 function pintaResposta(){const el=$('#j-resposta');el.textContent=input||'?';el.className='resposta';}
 $('#btn-veure').onclick=()=>{ajudaUsada=true;$('#j-ajuda').hidden=false;$('#j-ajuda').innerHTML=htmlAjuda(preguntaActual);$('#btn-veure').hidden=true;};
 function htmlAjuda(p){const a=p.a,b=p.b;
@@ -354,16 +404,23 @@ function htmlAjuda(p){const a=p.a,b=p.b;
 function tecla(k){if(k==='OK')return avalua();if(k==='⌫')input=input.slice(0,-1);else if(input.length<3)input+=k;pintaResposta();}
 document.addEventListener('keydown',e=>{if(!$('#sc-joc').classList.contains('activa'))return;
  if(/^[0-9]$/.test(e.key))tecla(e.key);else if(e.key==='Backspace')tecla('⌫');else if(e.key==='Enter')tecla('OK');});
+/* feedback i avaluació */
+function salta(){if(esperant){clearTimeout(esperant);esperant=null;seguent();}}
 function avalua(){
  if(input==='')return;
  const p=preguntaActual,correcta=p.tipus==='inversa'?p.a:p.a*p.b,val=+input,ok=val===correcta,ms=Date.now()-tInici;
- if(ok){sessio.encerts++;sessio.ratxa++;sessio.millor=Math.max(sessio.millor,sessio.ratxa);sessio.punts+=10+(sessio.ratxa>=3?5:0);}
+ let guany=0;
+ if(ok){sessio.encerts++;sessio.ratxa++;sessio.millor=Math.max(sessio.millor,sessio.ratxa);guany=10+(sessio.ratxa>=3?5:0);sessio.punts+=guany;}
  else{sessio.errors++;sessio.ratxa=0;}
  const t=p.tipus==='inversa'?p.b:p.a;(sessio.temps[t]=sessio.temps[t]||[]).push(ms);
  pintaResposta();$('#j-resposta').classList.add(ok?'ok':'ko');if(!ok)$('#j-resposta').textContent=correcta;
+ const f=$('#j-feedback');f.hidden=false;f.className='feedback '+(ok?'fb-ok':'fb-ko');
+ f.innerHTML=ok?`✅ Correcte! +${guany} punts${sessio.ratxa>=3?` · 🔥 ratxa de ${sessio.ratxa}`:''}<small>toca per continuar ▸</small>`
+  :`❌ Ops! ${p.tipus==='inversa'?`<b>${p.a}</b> × ${p.b} = ${p.a*p.b}`:`${p.a} × ${p.b} = <b>${correcta}</b>`}<small>toca per continuar ▸</small>`;
+ f.onclick=salta;
  pintaCapJoc();
  UI.resposta({a:p.a,b:p.b,tipus:p.tipus},{ok,ms,ajuda:ajudaUsada});
- setTimeout(seguent,ok?350:900);}
+ esperant=setTimeout(()=>{esperant=null;seguent();},ok?1100:2600);}
 function pintaCapJoc(){$('#j-punts').textContent=sessio.punts;
  const d=$('#j-ratxa');d.innerHTML='';for(let i=0;i<5;i++){const dot=document.createElement('i');if(i<Math.min(5,sessio.ratxa))dot.className='plena';d.appendChild(dot);}}
 function seguent(){
@@ -378,21 +435,26 @@ function genera(){if(modeSel==='repas')return null;
 $('#btn-surt').onclick=()=>{if(sessio&&(sessio.encerts+sessio.errors)>0)fiSessio();else{renderInici();mostra('#sc-inici');}};
 
 /* ---------- resultats ---------- */
-function fiSessio(){pararTimer();
+function fiSessio(){pararTimer();if(esperant){clearTimeout(esperant);esperant=null;}
  const p=perfil();
  p.punts+=sessio.punts;p.encerts+=sessio.encerts;p.millorRatxa=Math.max(p.millorRatxa,sessio.millor);
  if(modeSel==='rellotge'&&sessio.encerts>=20)p.rellotge20=true;
  let desbloc=null;
- if(modeSel==='repte'){const tot=sessio.encerts+sessio.errors,prec=tot?sessio.encerts/tot:0;
-  if(tot>=10&&prec>=0.8){p.desblocades.push(taulaRepteActual);desbloc=taulaRepteActual;}}
+ if(modeSel==='repte'){const totR=sessio.encerts+sessio.errors,precR=totR?sessio.encerts/totR:0;
+  if(totR>=10&&precR>=0.8){p.desblocades.push(taulaRepteActual);desbloc=taulaRepteActual;}}
+ const tot=sessio.encerts+sessio.errors;
+ if(modeSel==='repas')p.repAssos=(p.repAssos||0)+1;
+ if(sessio.errors===0&&tot>=10)p.perfectes=(p.perfectes||0)+1;
  const record=sessio.punts>p.record;if(record)p.record=sessio.punts;
+ const noves=comprovaMedalles();
  desa(LSK,perfils);
  $('#r-mode').textContent=TITOLS[modeSel];$('#r-punts').textContent=sessio.punts;
  $('#r-record').hidden=!record;$('#r-desbloc').hidden=!desbloc;
  if(desbloc)$('#r-desbloc').textContent=`🏆 Has desblocat la taula del ${desbloc}!`;
+ $('#r-medalles').hidden=!noves.length;
+ $('#r-medalles').innerHTML=noves.map(m=>`<div class="nova-medalla">🎉 Nova medalla: ${m.ic} <b>${m.nom}</b></div>`).join('');
  $('#r-encerts').textContent=sessio.encerts;$('#r-errors').textContent=sessio.errors;
  $('#r-ratxa').textContent=sessio.millor;
- const tot=sessio.encerts+sessio.errors;
  $('#r-prec').textContent=(tot?Math.round(100*sessio.encerts/tot):0)+'%';
  const tt=$('#r-temps-taula');tt.innerHTML='';
  Object.entries(sessio.temps).sort((a,b)=>a[0]-b[0]).forEach(([t,arr])=>{
@@ -411,7 +473,7 @@ function pNova(){pPreg={a:tria(cfg.taules.length?cfg.taules:[1,2,3,4,5,6,7,8,9,1
  pStats.set.add(pPreg.a);
  $('#p-pregunta').innerHTML=`<span>${pPreg.a}</span><span>×</span><span>${pPreg.b}</span><span>=</span><span class="inc">?</span>`;
  $('#p-ajuda').hidden=true;pintaP();renderPTaules();}
-function pMostra(){ $('#p-ajuda').hidden=false;$('#p-ajuda').innerHTML=`<p class="resultat">${pPreg.a*pPreg.b}</p>`+htmlAjuda(pPreg);}
+function pMostra(){$('#p-ajuda').hidden=false;$('#p-ajuda').innerHTML=`<p class="resultat">${pPreg.a*pPreg.b}</p>`+htmlAjuda(pPreg);}
 $('#p-mostra').onclick=pMostra;
 $('#p-graella').onclick=()=>{const el=$('#p-ajuda');if(el.hidden)pMostra();else el.hidden=true;};
 $('#p-okbtn').onclick=()=>{pStats.ok++;pStats.ratxa++;pNova();};

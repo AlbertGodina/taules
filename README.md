@@ -95,4 +95,13 @@ Aquesta eina ha estat dissenyada per a l'alumnat de **3r a 6è de primària**, a
 
 ## 📄 Llicència
 
-[MIT](LICENSE) — Lliure per usar, modificar, adaptar a l'aula i distribuir.
+[![CC BY-NC 4.0](https://i.creativecommons.org/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/deed.ca)
+
+Aquesta obra està subjecta a la llicència **Creative Commons Reconeixement-NoComercial 4.0 Internacional (CC BY-NC 4.0)**.
+
+- ✅ **Compartir** — copiar i redistribuir el material en qualsevol mitjà o format.
+- ✅ **Adaptar** — remesclar, transformar i crear a partir del material, per exemple per adaptar-la a la teva aula.
+- 👤 **Reconeixement (BY)** — cal donar crèdit a l'autoria original i enllaçar la llicència.
+- 🚫 **NoComercial (NC)** — no se'n permet l'ús amb finalitats comercials.
+
+Text complet: [creativecommons.org/licenses/by-nc/4.0/deed.ca](https://creativecommons.org/licenses/by-nc/4.0/deed.ca)

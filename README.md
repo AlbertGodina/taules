@@ -56,6 +56,9 @@ taules/
 ├── ui-srs.js    # Connector entre el motor SRS i la interfície
 └── README.md
 
+```
+
+
 Tota l'aplicació està escrita en **Vanilla JS**. No hi ha dependències externes, ni frameworks, ni processos de *build*.
 
 ---

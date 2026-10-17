@@ -61,7 +61,7 @@ const UI = (() => {
 
   const taulesLentes = () => {
     const s = new Set();
-    for (let a = 1; a <= 10; a++) for (let b = 1; b <= 10; b++)
+    for (let a = 1; a <= 13; a++) for (let b = 1; b <= 10; b++)
       if (SRS.estat(pid, a, b) === 'lenta') s.add(a);
     return [...s];
   };

@@ -1,107 +1,95 @@
-# Taules × — Practica les multiplicacions
+# Taules ×
 
-Aplicació web per practicar les taules de multiplicar, pensada per a l'alumnat de cicle mitjà i superior de primària. Més enllà de la simple memorització, integra un **motor de repetició espaiada (SRS)** i **suports visuals** per construir una comprensió real de la multiplicació. 
+Aplicació web per **practicar les taules de multiplicar** de l'1 al 13, pensada per a l'alumnat de primària i primer d'ESO. Funciona al navegador, sense instal·lació, sense comptes i sense enviar dades enlloc.
 
-Funciona directament al navegador, sense instal·lació ni connexió a internet.
+🔗 **Prova-la:** <https://albertgodina.github.io/taules/>
 
----
+## Què inclou
 
-## ✨ Funcionalitats principals
+### Modes de joc
 
-### 🎮 5 Modes de joc
 | Mode | Descripció |
-|------|------------|
-| 📖 **Pràctica lliure** | Tria les taules que vols treballar i practica al teu ritme. |
-| ⏱ **Contra rellotge** | 2 o 3 minuts: quantes multiplicacions pots encertar sota pressió? |
-| 🔁 **Repàs intel·ligent** | Basat en repetició espaiada (estil Anki). L'algorisme programa els repassos just quan l'alumne està a punt d'oblidar la multiplicació. |
-| 🏆 **Repte progressiu** | Desbloqueja les taules una a una (en ordre pedagògic: 2, 5, 10, 4...) a mesura que les domines. |
-| 📽 **Mode presentació** | Sense registre de dades. Pensat per projectar a la pissarra digital i jugar a classe amb tot el grup. |
+|---|---|
+| 📖 **Pràctica lliure** | Tria quines taules vols practicar i quantes operacions (10, 20, 30 o 40). |
+| ⏱ **Contra rellotge** | Quantes multiplicacions pots resoldre en 2 o 3 minuts? |
+| 🔁 **Repàs intel·ligent** | Repàs amb repetició espaiada: l'aplicació proposa el que toca repassar i, quan cal, fets nous. |
+| 🏆 **Repte progressiu** | Es desbloquegen les taules una a una. Per superar-ne una cal resoldre 10 preguntes amb un 80 % d'encerts com a mínim. |
+| 📽 **Mode presentació** | Per projectar a la pissarra i jugar a classe amb tot el grup. |
 
-### 🧠 Pedagogia i Suport Visual
-- **Feedback formatiu:** En fallar, l'app no només marca l'error en vermell, sinó que mostra l'operació completa i la sacseja per assegurar que l'alumne processa la correcció.
-- **Representació concreta:** El botó "👁 Veure-ho" no dona directament el resultat, sinó que ensenya *per què* és aquell resultat mitjançant **matrius de punts** i **salts a la recta numèrica**.
-- **Mode invers:** Treballa la relació multiplicació/divisió i el pensament algebraic primerenc (`? × 6 = 42`).
-- **Fitxes imprimibles intel·ligents:** Genera un PDF amb les multiplicacions exactes que l'alumne necessita repassar segons el seu estat de memòria.
+També es pot activar la **pregunta inversa** (`___ × 7 = 42`) en la pràctica lliure i en el mode contra rellotge.
 
-### 🏅 Gamificació i Motivació
-- ⭐ **Punts i combos:** 10 punts base + bonus per mantenir ratxes d'encerts.
-- 🔥 **Ratxes en temps real:** Indicador visual per fomentar la concentració.
-- 🎖️ **12 Medalles progressives:** Des de "Primers passos" fins a "Campió del ×". Les medalles bloquejades mostren el progrés actual (ex: *3/10*) per motivar l'alumne.
-- 🦊 **Avatars desbloquejables:** Els alumnes guanyen nous avatars (😎🦊🐯🦄👑) a mesura que aconsegueixen medalles.
-- 📈 **Títols de nivell:** Evolució des d'*Aprenent* fins a *Llegenda del ×*.
+### Taules i multiplicadors
 
----
+- Taules disponibles: **de l'1 al 13**.
+- El multiplicador va sempre **de l'1 al 10** (`13 × 7`, però no `13 × 12`).
 
-## 🚀 Com utilitzar-lo
+### Ajuda visual
 
-### Opció 1 — GitHub Pages (Recomanat per a l'aula)
-1. Fes un **fork** d'aquest repositori.
-2. Ves a **Settings → Pages**.
-3. A *Source*, selecciona la branca `main` i la carpeta `/ (root)`.
-4. Guarda i espera uns segons: l'aplicació estarà disponible a `https://el-teu-usuari.github.io/taules`.
+El botó **«Veure-ho»** mostra la multiplicació com una matriu de files i columnes, i com a salts de suma (`+7 → 7 → 14 → 21…`). Mirar l'ajuda no penalitza: l'operació es torna a treballar més endavant, però no compta com un error.
 
-### Opció 2 — En local o sense internet
-1. Descarrega el repositori (Code → Download ZIP).
-2. Obre el fitxer `index.html` amb qualsevol navegador modern (Chrome, Safari, Firefox). 
-*(Nota: Assegura't que `srs.js` i `ui-srs.js` estiguin a la mateixa carpeta).*
+### Motivació
 
----
+- Punts per encert, amb bonificació per ratxa.
+- 12 medalles (ratxes, encerts totals, taules dominades, sessions sense errors, mode rellotge, repassos…).
+- Nivells i avatars que es desbloquegen amb les medalles.
+- Perfils múltiples al mateix dispositiu, de manera que cada alumne té el seu progrés.
 
-## 📁 Estructura del repositori
+### Eines per al professorat
 
-```text
-taules/
-├── index.html   # Interfície (HTML/CSS) i lògica principal del joc
-├── srs.js       # Motor de repetició espaiada (Algorisme SM-2 adaptat)
-├── ui-srs.js    # Connector entre el motor SRS i la interfície
-└── README.md
+- **Fitxa imprimible** amb 20 operacions, triades segons el que cada alumne necessita treballar.
+- **Exportació del progrés en CSV** (fet, tipus, estat, repeticions, encerts, errors, interval i proper repàs).
+- Tema clar i fosc.
+
+## Com funciona el repàs intel·ligent
+
+El mòdul `srs.js` implementa una versió adaptada de **SM-2** pensada per a infants:
+
+- L'infant **no s'autoavalua**: la qualitat de cada resposta es calcula a partir de l'encert i del temps de resposta (≤ 5 s = fàcil, ≤ 12 s = bé, més = lent). Els llindars es poden calibrar amb les dades reals de l'alumne.
+- Els fets nous passen per uns **passos d'aprenentatge curts** (10 minuts i 1 dia) i es graduen a 3 dies.
+- Els intervals creixen fins a un màxim de 90 dies. Un fet es considera **«dominat»** quan arriba a 21 dies.
+- Els errors dins d'una sessió es **reinsereixen** unes quantes preguntes més endavant.
+- Demanar ajuda no penalitza: el fet es torna a treballar sense baixar-ne la facilitat.
+- Les multiplicacions són commutatives (`3 × 12` i `12 × 3` comparteixen targeta).
+- La pregunta inversa només entra a l'SRS quan la directa corresponent ja s'ha après.
+- Pensat per a sessions de 2–3 cops per setmana.
+
+## Estructura del projecte
 
 ```
+├── index.html   Interfície, estils i lògica de joc (tot en un sol fitxer)
+├── srs.js       Mòdul de repetició espaiada (SM-2 adaptat)
+├── ui-srs.js    Connector entre la interfície i el mòdul SRS
+└── README.md
+```
 
+No hi ha cap dependència externa ni cap pas de compilació. És HTML, CSS i JavaScript pur.
 
-Tota l'aplicació està escrita en **Vanilla JS**. No hi ha dependències externes, ni frameworks, ni processos de *build*.
+## Dades i privacitat
 
----
+Tot es guarda al **`localStorage` del navegador** de cada dispositiu:
 
-## ⚙️ Com funciona el Repàs Intel·ligent (SRS)
+| Clau | Contingut |
+|---|---|
+| `taulesx.perfils.v1` | Perfils, punts, medalles i desbloquejos |
+| `taulesx.srs.v1` | Estat de repetició espaiada de cada fet |
+| `taulesx.fosc` | Tema clar o fosc |
 
-El "Mode errors" tradicional s'ha substituït per un algorisme de **Repetició Espaiada** adaptat a la cognició infantil:
+No hi ha servidor, ni analítica, ni cookies de seguiment. Si s'esborren les dades del navegador, es perd el progrés; per això convé exportar-lo en CSV si es vol conservar.
 
-1. **Sense autoavaluació:** L'infant no ha de dir si li ha costat o no. L'app calcula la dificultat basant-se en l'encert, el temps de resposta i l'ús de l'ajuda visual.
-2. **L'ajuda no castiga:** Si l'alumne prem "👁 Veure-ho", es considera una fase d'aprenentatge (codificació) i no penalitza la targeta, evitant l'ansietat matemàtica.
-3. **Intervals progressius:** Una multiplicació passa de repassar-se als 10 minuts, a l'endemà, als 3 dies, fins a considerar-se **Dominada** (més de 21 dies de retenció).
-4. **Commutativitat:** `7×8` i `8×7` comparteixen targeta de memòria per optimitzar l'aprenentatge.
+## Ús en local
 
----
+Descarrega el repositori i obre `index.html` al navegador. No cal res més.
 
-## 🛠 Tecnologies
+## Publicació
 
-- **HTML5, CSS3, JavaScript (ES6)**
-- **`localStorage`** per a la persistència de perfils i estats de memòria.
-- Disseny *Responsive* (optimitzat per a tauletes i mòbils a l'aula).
-- Mode fosc 🌙 per a pissarres digitals o entorns amb poca llum.
+El projecte es publica amb **GitHub Pages**. Els fitxers han de ser a l'arrel de la branca publicada i dir-se exactament `index.html`, `srs.js` i `ui-srs.js`.
 
----
+## Personalització
 
-## 📚 Context pedagògic
+- **Taules disponibles:** a `index.html`, la constant `TAULES` defineix el rang (ara de l'1 al 13).
+- **Ordre del repte progressiu:** constant `ORDRE`.
+- **Paràmetres de l'SRS** (passos, intervals, llindars de temps, màxim de repassos per sessió): objecte `CONFIG` a `srs.js`.
 
-Aquesta eina ha estat dissenyada per a l'alumnat de **3r a 6è de primària**, alineada amb els continguts curriculars de matemàtiques i les bones pràctiques en didàctica:
+## Autoria
 
-- Prioritza la **comprensió** (suports visuals) per sobre de la memorització buida.
-- Fomenta la **fluïdesa** (automatització) mitjançant la repetició espaiada.
-- Redueix l'**ansietat matemàtica** permetent l'ús d'ajudes sense penalitzacions i amagant el cronòmetre en modes de pràctica.
-
----
-
-## 📄 Llicència
-
-[![CC BY-NC 4.0](https://i.creativecommons.org/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/deed.ca)
-
-Aquesta obra està subjecta a la llicència **Creative Commons Reconeixement-NoComercial 4.0 Internacional (CC BY-NC 4.0)**.
-
-- ✅ **Compartir** — copiar i redistribuir el material en qualsevol mitjà o format.
-- ✅ **Adaptar** — remesclar, transformar i crear a partir del material, per exemple per adaptar-la a la teva aula.
-- 👤 **Reconeixement (BY)** — cal donar crèdit a l'autoria original i enllaçar la llicència.
-- 🚫 **NoComercial (NC)** — no se'n permet l'ús amb finalitats comercials.
-
-Text complet: [creativecommons.org/licenses/by-nc/4.0/deed.ca](https://creativecommons.org/licenses/by-nc/4.0/deed.ca)
+Creat per [Albert Godina](https://github.com/AlbertGodina), docent de tecnologia i digitalització.

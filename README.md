@@ -18,6 +18,21 @@ Aplicació web per **practicar les taules de multiplicar** de l'1 al 13, pensada
 
 També es pot activar la **pregunta inversa** (`___ × 7 = 42`) en la pràctica lliure i en el mode contra rellotge.
 
+### Mode d'ús: casa o classe
+
+Des de la pantalla de perfils es tria el mode d'aquell dispositiu. Per defecte és **🏠 Casa**.
+
+| | 🏠 Casa | 🏫 Classe |
+|---|---|---|
+| Modes de pràctica, repàs i repte | ✅ | ✅ |
+| Còpia de seguretat i fitxa imprimible | ✅ | ✅ |
+| Resum de la família (taules dominades, repassos pendents i fets lents de cada perfil) | ✅ | — |
+| Vista de classe i CSV de grup | — | ✅ |
+| Mode presentació per projectar | — | ✅ |
+| PIN opcional per a la vista de classe | — | ✅ |
+
+El PIN (de 4 a 8 xifres) és un petit fre perquè l'alumnat no obri la vista de classe, no una mesura de seguretat: es guarda al mateix navegador que les dades.
+
 ### Taules i multiplicadors
 
 - Taules disponibles: **de l'1 al 13**.
@@ -36,9 +51,22 @@ El botó **«Veure-ho»** mostra la multiplicació com una matriu de files i col
 
 ### Eines per al professorat
 
+- **Vista de classe** (mode classe): mapa amb tots els perfils del dispositiu i l'estat de cada taula (dominada, en pràctica, lenta o nova), retenció, repassos pendents, punts i data de l'última sessió. Es pot ordenar per columnes, i el resum destaca les taules amb més fets lents.
+- **CSV de classe:** un resum amb una fila per alumne, o un detall amb tots els fets de tots els alumnes.
 - **Fitxa imprimible** amb 20 operacions, triades segons el que cada alumne necessita treballar.
-- **Exportació del progrés en CSV** (fet, tipus, estat, repeticions, encerts, errors, interval i proper repàs).
+- **Exportació del progrés individual en CSV** (fet, tipus, estat, repeticions, encerts, errors, interval i proper repàs).
 - Tema clar i fosc.
+
+### Còpia de seguretat
+
+- **Desa tots els perfils** en un fitxer JSON des de la pantalla de perfils, o només el teu progrés des de la pantalla d'inici.
+- **Carrega una còpia** per recuperar el progrés o passar-lo a un altre dispositiu. Si un perfil ja existeix, l'aplicació pregunta si s'ha de substituir.
+- El fitxer es valida i es neteja en carregar-lo, de manera que un fitxer manipulat no pot introduir dades invàlides ni codi.
+- Per tenir tota la classe a l'ordinador del docent, es pot carregar la còpia de cada alumne i consultar-la a la vista de classe.
+
+### Aplicació instal·lable (PWA)
+
+Es pot instal·lar a la pantalla d'inici (Android, iPad, iPhone i ordinador) i **funciona sense connexió** després de la primera visita. Quan hi ha connexió, carrega sempre la versió més nova.
 
 ## Com funciona el repàs intel·ligent
 
@@ -56,9 +84,15 @@ El mòdul `srs.js` implementa una versió adaptada de **SM-2** pensada per a inf
 ## Estructura del projecte
 
 ```
-├── index.html   Interfície, estils i lògica de joc (tot en un sol fitxer)
-├── srs.js       Mòdul de repetició espaiada (SM-2 adaptat)
-├── ui-srs.js    Connector entre la interfície i el mòdul SRS
+├── index.html                 Interfície, estils i lògica de joc (tot en un sol fitxer)
+├── srs.js                     Mòdul de repetició espaiada (SM-2 adaptat)
+├── ui-srs.js                  Connector entre la interfície i el mòdul SRS
+├── manifest.webmanifest       Dades de l'aplicació instal·lable
+├── sw.js                      Service worker (mode sense connexió)
+├── icon-192.png               Icones de l'aplicació
+├── icon-512.png
+├── icon-maskable-512.png
+├── apple-touch-icon.png       Icona per a iPad i iPhone
 └── README.md
 ```
 
@@ -73,8 +107,11 @@ Tot es guarda al **`localStorage` del navegador** de cada dispositiu:
 | `taulesx.perfils.v1` | Perfils, punts, medalles i desbloquejos |
 | `taulesx.srs.v1` | Estat de repetició espaiada de cada fet |
 | `taulesx.fosc` | Tema clar o fosc |
+| `taulesx.copia` | Data de l'última còpia de seguretat completa |
+| `taulesx.mode` | Mode d'ús del dispositiu (casa o classe) |
+| `taulesx.pin` | PIN de la vista de classe (només el seu hash) |
 
-No hi ha servidor, ni analítica, ni cookies de seguiment. Si s'esborren les dades del navegador, es perd el progrés; per això convé exportar-lo en CSV si es vol conservar.
+No hi ha servidor, ni analítica, ni cookies de seguiment. Si s'esborren les dades del navegador, es perd el progrés; per això convé fer-ne una còpia de seguretat de tant en tant (JSON). L'aplicació et recorda quan fa més d'un mes de l'última.
 
 ## Ús en local
 
@@ -82,13 +119,14 @@ Descarrega el repositori i obre `index.html` al navegador. No cal res més.
 
 ## Publicació
 
-El projecte es publica amb **GitHub Pages**. Els fitxers han de ser a l'arrel de la branca publicada i dir-se exactament `index.html`, `srs.js` i `ui-srs.js`.
+El projecte es publica amb **GitHub Pages**. Tots els fitxers de l'estructura anterior han de ser a l'arrel de la branca publicada i dir-se exactament així. L'aplicació instal·lable i el mode sense connexió requereixen HTTPS, que GitHub Pages ja ofereix.
 
 ## Personalització
 
 - **Taules disponibles:** a `index.html`, la constant `TAULES` defineix el rang (ara de l'1 al 13).
 - **Ordre del repte progressiu:** constant `ORDRE`.
 - **Paràmetres de l'SRS** (passos, intervals, llindars de temps, màxim de repassos per sessió): objecte `CONFIG` a `srs.js`.
+- **Versió de la memòria cau sense connexió:** constant `CACHE` a `sw.js`. Canvia-la (per exemple a `taulesx-v2`) si vols forçar que els dispositius esborrin la còpia local antiga.
 
 ## Autoria
 

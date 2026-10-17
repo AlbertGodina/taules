@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Taules × — Practica les multiplicacions</title>
+<meta name="theme-color" content="#e4572e">
+<meta name="description" content="Practica les taules de multiplicar de l'1 al 13 amb repetició espaiada.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Taules ×">
 <!-- Depèn de: srs.js i ui-srs.js (mateixa carpeta) -->
 <style>
 :root{--fons:#f2efe9;--tinta:#201d1a;--card:#fbf9f5;--linia:#e0dbd1;--accent:#e4572e;--verd:#2f9e6e;--vermell:#c0392b;--ombra:0 8px 24px rgb(0 0 0/.08)}
@@ -100,6 +108,15 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .fitxa-item{border-bottom:1px solid #bbb;padding:12px 0;font-size:1.4rem;font-family:ui-monospace,Menlo,monospace}
 .fitxa-titol{margin:0 0 4px}
 .fitxa-data{opacity:.7;margin:0 0 18px}
+.screen.ample{max-width:920px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.taula-classe{width:100%;border-collapse:collapse;font-size:.85rem}
+.taula-classe th,.taula-classe td{padding:7px 3px;text-align:center;border-bottom:1px solid var(--linia);white-space:nowrap}
+.taula-classe th{cursor:pointer;font-size:.72rem;opacity:.85;user-select:none}
+.taula-classe th:first-child,.taula-classe td:first-child{text-align:left;font-weight:700;position:sticky;left:0;background:var(--fons);padding-left:6px;padding-right:10px}
+.cel{display:inline-block;width:20px;height:20px;border-radius:5px;border:2px solid var(--linia);vertical-align:middle}
+.avis{color:var(--accent);font-weight:800}
+.nota{font-size:.85rem;opacity:.75;margin:6px 0 10px}
 @media print{
   body *{visibility:hidden}
   #fitxa-container,#fitxa-container *{visibility:visible}
@@ -122,6 +139,32 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
       <input id="inp-nom" maxlength="12" placeholder="Nom">
       <div class="row"><button class="btn petit" id="btn-crear">Crear</button><button class="btn petit secundari" id="btn-cancela">✕</button></div>
     </div>
+  </div>
+  <div class="card" id="card-familia" hidden>
+    <h4 style="margin-top:0">👨‍👩‍👧 Resum de la família</h4>
+    <p class="nota">Com va cadascú i què toca repassar.</p>
+    <div id="resum-familia"></div>
+  </div>
+  <div class="card" id="card-copia">
+    <h4 style="margin-top:0">💾 Còpia de seguretat</h4>
+    <p class="nota" id="copia-info"></p>
+    <div class="row"><button class="btn petit secundari" id="btn-copia-tots">⬇ Desa tots els perfils</button><button class="btn petit secundari" id="btn-copia-carrega">⬆ Carrega una còpia</button></div>
+    <input type="file" id="inp-copia" accept=".json,application/json" hidden>
+  </div>
+  <div class="card" id="card-docent">
+    <h4 style="margin-top:0">👩‍🏫 Per al professorat</h4>
+    <p class="nota">Mapa de progrés de tots els perfils d'aquest dispositiu i exportació en CSV.</p>
+    <div class="row"><button class="btn petit secundari" id="btn-classe">📊 Vista de classe</button><button class="btn petit secundari" id="btn-pin">🔒 Posa un PIN</button></div>
+  </div>
+  <div class="card" id="card-mode">
+    <h4 style="margin-top:0">⚙ Mode d'ús d'aquest dispositiu</h4>
+    <div class="chips" id="chips-mode"><button class="chip" data-us="casa">🏠 Casa</button><button class="chip" data-us="classe">🏫 Classe</button></div>
+    <p class="nota" id="mode-info" style="margin-bottom:0"></p>
+  </div>
+  <div class="card" id="card-installa" hidden>
+    <h4 style="margin-top:0">📲 Instal·la l'aplicació</h4>
+    <p class="nota" id="installa-text">Obre-la des de la pantalla d'inici i fes-la servir sense connexió.</p>
+    <button class="btn petit" id="btn-installa">Instal·lar</button>
   </div>
 </section>
 
@@ -156,6 +199,22 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   <div class="row accions">
     <button class="btn secundari" id="btn-csv">⬇ Exportar progrés (CSV)</button>
     <button class="btn secundari" id="btn-fitxa">🖨️ Fitxa imprimible</button>
+    <button class="btn secundari" id="btn-copia-perfil">💾 Desa el meu progrés</button>
+  </div>
+</section>
+
+<!-- ══════════ VISTA DE CLASSE ══════════ -->
+<section id="sc-classe" class="screen ample">
+  <header class="cap"><span class="logo">taules<span class="x">×</span></span><button class="btn petit secundari" id="c-enrere">← Perfils</button></header>
+  <h2>Vista de classe</h2>
+  <p class="nota">Mostra els perfils d'aquest dispositiu. Per afegir-hi alumnes d'altres dispositius, carrega'n la còpia de seguretat des de la pantalla de perfils.</p>
+  <div id="c-resum" class="repas-resum"></div>
+  <div class="llegenda"><span class="est-dominada" style="padding:2px 8px;border-radius:6px">Dominada</span><span class="est-practica" style="padding:2px 8px;border-radius:6px">En pràctica</span><span class="est-lenta" style="padding:2px 8px;border-radius:6px">Lenta</span><span class="est-nova" style="padding:2px 8px;border-radius:6px;border:1px solid var(--linia)">Nova</span></div>
+  <div class="scroll-x"><table class="taula-classe" id="c-taula"></table></div>
+  <p class="nota">Toca una capçalera per ordenar la taula.</p>
+  <div class="row accions">
+    <button class="btn secundari" id="c-csv-resum">⬇ CSV resum de classe</button>
+    <button class="btn secundari" id="c-csv-detall">⬇ CSV detallat (tots els fets)</button>
   </div>
 </section>
 
@@ -266,6 +325,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const carrega=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
 const desa=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const tria=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const TAULES=Array.from({length:13},(_,i)=>i+1); // taules disponibles (1..13)
 const R10=()=>1+Math.floor(Math.random()*10); // multiplicador: sempre 1..10
 const LSK='taulesx.perfils.v1';
@@ -288,7 +348,8 @@ $$('.btn-tema').forEach(b=>b.onclick=()=>{document.body.classList.toggle('fosc')
 const perfil=()=>perfils.find(p=>p.id===pid);
 function renderPerfils(){const c=$('#llista-perfils');c.innerHTML='';
  perfils.forEach(p=>{const b=document.createElement('button');b.className='btn secundari perfil';
-  b.innerHTML=`<strong>${p.nom}</strong><small>⭐ ${p.punts} pts</small>`;b.onclick=()=>entra(p.id);c.appendChild(b);});}
+  b.innerHTML=`<strong>${esc(p.nom)}</strong><small>⭐ ${p.punts} pts</small>`;b.onclick=()=>entra(p.id);c.appendChild(b);});
+ renderCopiaInfo();aplicaMode();}
 function entra(id){pid=id;UI.setPerfil(id);renderInici();mostra('#sc-inici');}
 $('#btn-nou-perfil').onclick=()=>{$('#form-perfil').hidden=false;$('#inp-nom').focus();};
 $('#btn-cancela').onclick=()=>{$('#form-perfil').hidden=true;};
@@ -298,10 +359,10 @@ $('#btn-crear').onclick=()=>{const nom=$('#inp-nom').value.trim();if(!nom)return
 $('#btn-perfils').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
 
 /* ---------- inici: estat, medalles, avatars, nivells ---------- */
-function estatTaula(t){let dom=0,nov=0,len=0;
- for(let b=1;b<=10;b++){const e=SRS.estat(pid,t,b);if(e==='dominada')dom++;else if(e==='nova')nov++;else if(e==='lenta')len++;}
+function estatTaula(t,id=pid){let dom=0,nov=0,len=0;
+ for(let b=1;b<=10;b++){const e=SRS.estat(id,t,b);if(e==='dominada')dom++;else if(e==='nova')nov++;else if(e==='lenta')len++;}
  if(dom===10)return 'dominada'; if(nov===10)return 'nova'; if(len>0)return 'lenta'; return 'practica';}
-const dom=()=>{let n=0;for(const t of TAULES)if(estatTaula(t)==='dominada')n++;return n;};
+const dom=(id=pid)=>{let n=0;for(const t of TAULES)if(estatTaula(t,id)==='dominada')n++;return n;};
 const MEDALLES=[
  {id:'enc10',ic:'🌱',nom:'Primers passos',desc:'10 encerts totals',obj:10,val:p=>p.encerts},
  {id:'enc100',ic:'⚡',nom:'Cent encerts',desc:'100 encerts totals',obj:100,val:p=>p.encerts},
@@ -438,7 +499,7 @@ $('#btn-surt').onclick=()=>{if(sessio&&(sessio.encerts+sessio.errors)>0)fiSessio
 
 /* ---------- resultats ---------- */
 function fiSessio(){pararTimer();if(esperant){clearTimeout(esperant);esperant=null;}
- const p=perfil();
+ const p=perfil();p.ultima=Date.now();
  p.punts+=sessio.punts;p.encerts+=sessio.encerts;p.millorRatxa=Math.max(p.millorRatxa,sessio.millor);
  if(modeSel==='rellotge'&&sessio.encerts>=20)p.rellotge20=true;
  let desbloc=null;
@@ -499,8 +560,165 @@ function obreFitxa(){let fets=UI.fetsFitxa();
 $('#f-imprimir').onclick=()=>window.print();
 $('#f-pdf').onclick=()=>window.print();
 $('#f-enrere').onclick=()=>{renderInici();mostra('#sc-inici');};
-$('#btn-csv').onclick=()=>{const blob=new Blob(['\uFEFF'+UI.csvProgres()],{type:'text/csv'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`progres-${perfil().nom}.csv`;a.click();};
+$('#btn-csv').onclick=()=>baixa('\uFEFF'+UI.csvProgres(),`progres-${nomFitxer(perfil().nom)}.csv`,'text/csv');
+
+/* ---------- descàrregues ---------- */
+const nomFitxer=n=>String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_').slice(0,20)||'perfil';
+const dataISO=()=>new Date().toISOString().slice(0,10);
+function baixa(text,nom,tipus){const blob=new Blob([text],{type:tipus});const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=nom;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+
+/* ---------- còpia de seguretat (JSON) ---------- */
+const SRSK='taulesx.srs.v1', COPIAK='taulesx.copia';
+function creaCopia(ids){
+ const tot=carrega(SRSK,{}), ps=perfils.filter(p=>!ids||ids.includes(p.id)), srs={};
+ ps.forEach(p=>{if(tot[p.id])srs[p.id]=tot[p.id];});
+ const o={app:'taulesx',versio:1,data:new Date().toISOString(),perfils:ps,srs};
+ if(!ids&&tot._llindars)o.llindars=tot._llindars;
+ return JSON.stringify(o);}
+function desaCopia(ids,base){
+ if(!perfils.length){alert('Encara no hi ha cap perfil per desar.');return;}
+ baixa(creaCopia(ids),`taules-${base}-${dataISO()}.json`,'application/json');
+ if(!ids){localStorage.setItem(COPIAK,new Date().toISOString());renderCopiaInfo();}}
+function renderCopiaInfo(){const el=$('#copia-info');if(!el)return;
+ const c=localStorage.getItem(COPIAK),base="El progrés es guarda només en aquest navegador. Desa'n una còpia per no perdre'l o per passar-lo a un altre dispositiu.";
+ if(!c){el.innerHTML=esc(base)+(perfils.length?' <span class="avis">Encara no n\'has fet cap còpia.</span>':'');return;}
+ const dies=Math.floor((Date.now()-new Date(c))/864e5);
+ el.innerHTML=esc(base)+` Última còpia completa: <b>${esc(new Date(c).toLocaleDateString('ca-ES'))}</b>`+(dies>=30?' <span class="avis">(fa més d\'un mes)</span>':'')+'.';}
+const num=(v,min,max,d=0)=>{v=Number(v);return Number.isFinite(v)?Math.min(max,Math.max(min,v)):d;};
+function netejaPerfil(p){
+ if(!p||typeof p!=='object')return null;
+ const id=String(p.id??'');if(!/^[\w-]{1,40}$/.test(id))return null;
+ const nom=String(p.nom??'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,20);if(!nom)return null;
+ const ids=MEDALLES.map(m=>m.id);
+ const r={id,nom,punts:num(p.punts,0,1e7),encerts:num(p.encerts,0,1e7),millorRatxa:num(p.millorRatxa,0,1e6),record:num(p.record,0,1e7),
+  rellotge20:!!p.rellotge20,
+  desblocades:Array.isArray(p.desblocades)?[...new Set(p.desblocades.map(Number).filter(t=>TAULES.includes(t)))]:[],
+  medalles:Array.isArray(p.medalles)?[...new Set(p.medalles.filter(m=>ids.includes(m)))]:[],
+  perfectes:num(p.perfectes,0,1e6),repAssos:num(p.repAssos,0,1e6)};
+ if(num(p.ultima,0,8.64e15)>0)r.ultima=num(p.ultima,0,8.64e15);
+ if(AVATARS.some(a=>a[0]===p.avatar))r.avatar=p.avatar;
+ return r;}
+function netejaSrs(o){
+ if(!o||typeof o!=='object'||!o.cards||typeof o.cards!=='object')return null;
+ const cards={};
+ for(const [k,c] of Object.entries(o.cards)){
+  if(!/^i?\d{1,2}x\d{1,2}$/.test(k)||!c||typeof c!=='object')continue;
+  const respostes=Math.round(num(c.respostes,0,1e6));
+  cards[k]={ease:num(c.ease,1.3,2.8,2.5),step:Math.round(num(c.step,0,1,0)),interval:Math.round(num(c.interval,0,90)),
+   state:c.state==='review'?'review':'learning',due:num(c.due,0,8.64e15,Date.now()),reps:Math.round(num(c.reps,0,1e6)),
+   respostes,encerts:Math.min(respostes,Math.round(num(c.encerts,0,1e6))),lapses:Math.round(num(c.lapses,0,1e6)),
+   temps:Array.isArray(c.temps)?c.temps.map(Number).filter(Number.isFinite).map(x=>Math.min(6e5,Math.max(0,x))).slice(-20):[]};}
+ return {cards};}
+function importaCopia(text){
+ let o;try{o=JSON.parse(text);}catch(e){alert('Aquest fitxer no és una còpia vàlida.');return;}
+ if(!o||o.app!=='taulesx'||!Array.isArray(o.perfils)){alert('Aquest fitxer no sembla una còpia de Taules ×.');return;}
+ const entrants=o.perfils.map(netejaPerfil).filter(Boolean);
+ if(!entrants.length){alert('La còpia no conté cap perfil.');return;}
+ const repetits=entrants.filter(p=>perfils.some(q=>q.id===p.id));
+ let substitueix=true;
+ if(repetits.length){const d=o.data?new Date(o.data).toLocaleDateString('ca-ES'):'?';
+  substitueix=confirm(`Aquests perfils ja existeixen en aquest dispositiu: ${repetits.map(p=>p.nom).join(', ')}.\n\nAccepta per SUBSTITUIR-los per la còpia del ${d}.\nCancel·la per mantenir els actuals i afegir només els nous.`);}
+ const srs=carrega(SRSK,{});let n=0;
+ for(const p of entrants){
+  const i=perfils.findIndex(q=>q.id===p.id);
+  if(i>=0&&!substitueix)continue;
+  if(i>=0)perfils[i]=p;else perfils.push(p);
+  const sc=netejaSrs(o.srs&&o.srs[p.id]);
+  if(sc)srs[p.id]=sc;else delete srs[p.id];
+  n++;}
+ if(o.llindars&&typeof o.llindars==='object'&&!srs._llindars)
+  srs._llindars={facil:num(o.llindars.facil,500,60000,5000),be:num(o.llindars.be,500,60000,12000)};
+ desa(LSK,perfils);desa(SRSK,srs);SRS.init();renderPerfils();
+ alert(n?`✅ S'han carregat ${n} perfil${n>1?'s':''}.`:'No s\'ha carregat cap perfil.');}
+$('#btn-copia-tots').onclick=()=>desaCopia(null,'tots');
+$('#btn-copia-perfil').onclick=()=>desaCopia([pid],nomFitxer(perfil().nom));
+$('#btn-copia-carrega').onclick=()=>$('#inp-copia').click();
+$('#inp-copia').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ if(f.size>5e6){alert('El fitxer és massa gran.');return;}
+ importaCopia(await f.text());};
+
+/* ---------- mode d'ús: casa / classe ---------- */
+const MODEK='taulesx.mode', PINK='taulesx.pin';
+let modeUs=carrega(MODEK,'casa');if(modeUs!=='classe')modeUs='casa';
+const hashPin=p=>{let h1=0xdeadbeef,h2=0x41c6ce57;const t='taulesx:'+p;
+ for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+ h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);};
+function renderFamilia(){const f=filesClasse();
+ $('#resum-familia').innerHTML=f.map(r=>{const l=TAULES.filter((t,i)=>r.ests[i]==='lenta');
+  return `<div class="trow"><span><b>${esc(r.p.nom)}</b></span><span>${r.dom}/${TAULES.length} dominades`
+   +(r.pend?` · <span class="avis">🔁 ${r.pend} pendents</span>`:'')+(l.length?` · ⚠ lentes: ${l.join(', ')}`:'')+'</span></div>';}).join('');}
+function aplicaMode(){
+ const classe=modeUs==='classe';
+ $('#card-docent').hidden=!classe;
+ $('#card-familia').hidden=classe||!perfils.length;
+ if(!classe&&perfils.length)renderFamilia();
+ $('.mode-card[data-mode="presentacio"]').style.display=classe?'':'none';
+ $$('#chips-mode .chip').forEach(b=>b.classList.toggle('actiu',b.dataset.us===modeUs));
+ $('#mode-info').textContent=classe
+  ?"Inclou la vista de classe, el mode presentació per projectar i els CSV de grup."
+  :"Pantalla senzilla per a casa: pràctica, repassos, resum de la família i còpia de seguretat.";
+ $('#btn-pin').textContent=localStorage.getItem(PINK)?'🔒 Canvia el PIN':'🔒 Posa un PIN';}
+$$('#chips-mode .chip').forEach(b=>b.onclick=()=>{modeUs=b.dataset.us;desa(MODEK,modeUs);aplicaMode();});
+function demanaPin(msg){const h=localStorage.getItem(PINK);if(!h)return true;
+ const p=prompt(msg);if(p===null)return false;
+ if(hashPin(p.trim())!==h){alert('PIN incorrecte.');return false;}return true;}
+$('#btn-classe').onclick=()=>{if(!demanaPin('PIN del professorat:'))return;renderClasse();mostra('#sc-classe');};
+$('#btn-pin').onclick=()=>{if(!demanaPin('PIN actual:'))return;
+ const n=prompt("Nou PIN (de 4 a 8 xifres). Deixa-ho buit per treure'l:");if(n===null)return;
+ const v=n.trim();
+ if(!v){localStorage.removeItem(PINK);alert('PIN eliminat.');}
+ else if(!/^\d{4,8}$/.test(v)){alert('El PIN ha de tenir entre 4 i 8 xifres.');return;}
+ else{localStorage.setItem(PINK,hashPin(v));alert('PIN desat.');}
+ aplicaMode();};
+
+/* ---------- vista de classe ---------- */
+const ESTAT_TXT={dominada:'Dominada',practica:'En pràctica',lenta:'Lenta',nova:'Nova'};
+let ordreClasse={k:'nom',asc:true};
+function filesClasse(){return perfils.map(p=>{const st=SRS.stats(p.id),ests=TAULES.map(t=>estatTaula(t,p.id));
+ return {p,st,ests,dom:ests.filter(e=>e==='dominada').length,ret:st.retencio,pend:st.degudes,punts:p.punts,ultima:p.ultima||0};});}
+function renderClasse(){
+ const f=filesClasse(),k=ordreClasse.k,dir=ordreClasse.asc?1:-1;
+ f.sort((x,y)=>{const a=k==='nom'?x.p.nom.toLowerCase():(x[k]??-1),b=k==='nom'?y.p.nom.toLowerCase():(y[k]??-1);return (a>b?1:a<b?-1:0)*dir;});
+ const lentes=TAULES.map(t=>[t,f.filter(r=>r.ests[t-1]==='lenta').length]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+ const pend=f.reduce((s,r)=>s+r.pend,0);
+ $('#c-resum').innerHTML=f.length
+  ?`👥 <b>${f.length}</b> alumne${f.length>1?'s':''} · 🔁 <b>${pend}</b> repassos pendents`+(lentes.length?`<br>⚠ Taules amb més fets lents: ${lentes.map(([t,n])=>`<b>${t}</b> (${n})`).join(', ')}`:'<br>🎉 Cap taula amb fets lents')
+  :'Encara no hi ha cap perfil en aquest dispositiu.';
+ const cap=(k2,txt)=>`<th data-k="${k2}">${txt}${k===k2?(dir>0?' ▲':' ▼'):''}</th>`;
+ const data=ms=>ms?new Date(ms).toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit'}):'—';
+ $('#c-taula').innerHTML='<thead><tr>'+cap('nom','Alumne')+TAULES.map(t=>`<th style="cursor:default">${t}</th>`).join('')+cap('dom','Dom.')+cap('ret','Ret.')+cap('pend','Pend.')+cap('punts','⭐')+cap('ultima','Última')+'</tr></thead><tbody>'
+  +f.map(r=>`<tr><td>${esc(r.p.nom)}</td>`+r.ests.map((e,i)=>`<td><span class="cel est-${e}" title="Taula del ${i+1}: ${ESTAT_TXT[e]}"></span></td>`).join('')
+   +`<td>${r.dom}/${TAULES.length}</td><td>${r.ret==null?'—':r.ret+'%'}</td><td>${r.pend?`<span class="avis">${r.pend}</span>`:0}</td><td>${r.punts}</td><td>${data(r.ultima)}</td></tr>`).join('')+'</tbody>';
+ $$('#c-taula th[data-k]').forEach(th=>th.onclick=()=>{const n=th.dataset.k;ordreClasse=ordreClasse.k===n?{k:n,asc:!ordreClasse.asc}:{k:n,asc:n==='nom'};renderClasse();});}
+const celCsv=v=>{let s=String(v??'');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[;"\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
+function csvResum(){
+ const cap=['alumne','punts','encerts','millor_ratxa','ultima_sessio','taules_dominades','fets_iniciats','repassos_pendents','retencio_%','fets_lents','fets_en_practica','fets_dominats',...TAULES.map(t=>'taula_'+t)];
+ const rows=filesClasse().map(r=>[celCsv(r.p.nom),r.p.punts,r.p.encerts,r.p.millorRatxa,r.ultima?new Date(r.ultima).toISOString().slice(0,10):'',r.dom,r.st.targetes,r.pend,r.ret==null?'':r.ret,r.st.per.lenta,r.st.per.practica,r.st.per.dominada,...r.ests].join(';'));
+ return '\uFEFF'+[cap.join(';'),...rows].join('\n');}
+function csvDetall(){
+ let cap=null;const rows=[];
+ perfils.forEach(p=>{const l=SRS.csv(p.id).split('\n');if(!cap)cap='alumne;'+l[0];l.slice(1).forEach(x=>rows.push(celCsv(p.nom)+';'+x));});
+ return '\uFEFF'+[cap||'alumne;fact;tipus;estat;reps;encerts;errors;ease;interval_dies;proper_repas;retencio_%',...rows].join('\n');}
+$('#c-enrere').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
+$('#c-csv-resum').onclick=()=>{if(!perfils.length)return alert('Encara no hi ha cap perfil.');baixa(csvResum(),`classe-resum-${dataISO()}.csv`,'text/csv');};
+$('#c-csv-detall').onclick=()=>{if(!perfils.length)return alert('Encara no hi ha cap perfil.');baixa(csvDetall(),`classe-detall-${dataISO()}.csv`,'text/csv');};
+
+/* ---------- PWA: instal·lació i mode sense connexió ---------- */
+let promptInstal=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptInstal=e;$('#card-installa').hidden=false;});
+window.addEventListener('appinstalled',()=>{promptInstal=null;$('#card-installa').hidden=true;});
+$('#btn-installa').onclick=async()=>{if(!promptInstal)return;promptInstal.prompt();try{await promptInstal.userChoice;}catch(e){}promptInstal=null;$('#card-installa').hidden=true;};
+const esIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const jaInstalada=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+if(esIOS&&!jaInstalada){$('#card-installa').hidden=false;$('#btn-installa').hidden=true;
+ $('#installa-text').textContent="A l'iPad o l'iPhone: toca el botó Comparteix i tria «Afegeix a la pantalla d'inici». Així s'obre com una app i funciona sense connexió.";}
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))
+ addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 
 /* ---------- inici ---------- */
 SRS.init();

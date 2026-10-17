@@ -42,7 +42,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .srs-badge{position:absolute;top:-9px;right:-9px;background:var(--accent);color:#fff;border-radius:999px;padding:.3rem .6rem;font-size:.78rem;font-weight:800;box-shadow:0 2px 8px rgb(0 0 0/.25);animation:pop .25s ease}
 @keyframes pop{from{transform:scale(.5)}to{transform:scale(1)}}
 .llegenda{display:flex;gap:14px;font-size:.8rem;margin-bottom:8px}
-.graella{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.graella{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:8px}
 .graella div{border-radius:12px;text-align:center;padding:14px 0;font-weight:800;font-size:1.1rem;border:2px solid var(--linia);background:var(--card)}
 .est-dominada{background:var(--verd)!important;border-color:var(--verd)!important;color:#fff}
 .est-practica{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff}
@@ -77,6 +77,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .ajuda{background:var(--card);border:1px solid var(--linia);border-radius:16px;padding:16px;margin:14px auto;text-align:center;max-width:480px}
 .matriu{display:inline-flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .matriu .fila{display:flex;gap:4px}
+.matriu.gran .fila i{width:20px;height:20px}
 .matriu .fila i{width:26px;height:26px;border:2px solid var(--accent);border-radius:6px;background:rgba(228,87,46,.12)}
 .salts{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0}
 .salt{width:40px;height:40px;border:2px solid var(--accent);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent)}
@@ -265,15 +266,16 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const carrega=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
 const desa=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const tria=a=>a[Math.floor(Math.random()*a.length)];
-const R10=()=>1+Math.floor(Math.random()*10);
+const TAULES=Array.from({length:13},(_,i)=>i+1); // taules disponibles (1..13)
+const R10=()=>1+Math.floor(Math.random()*10); // multiplicador: sempre 1..10
 const LSK='taulesx.perfils.v1';
 
 let perfils=carrega(LSK,[]);
 let pid=null, modeSel=null;
-let cfg={taules:[1,2,3,4,5,6,7,8,9,10],min:2,ops:20,invers:false};
+let cfg={taules:[...TAULES],min:2,ops:20,invers:false};
 let sessio=null, preguntaActual=null, tInici=0, ajudaUsada=false, input='', total=0, fi=0, timer=null, taulaRepteActual=null, esperant=null;
 
-const ORDRE=[2,5,10,4,3,6,7,8,9,1];
+const ORDRE=[2,5,10,11,4,3,6,7,8,9,12,13,1];
 const TITOLS={lliure:'Pràctica lliure',rellotge:'Contra rellotge',repas:'Repàs intel·ligent',repte:'Repte progressiu',presentacio:'Mode presentació'};
 const VIS={lliure:['taules','ops','tipus'],rellotge:['taules','temps','tipus'],repas:['taules'],repte:[],presentacio:['taules']};
 
@@ -299,7 +301,7 @@ $('#btn-perfils').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
 function estatTaula(t){let dom=0,nov=0,len=0;
  for(let b=1;b<=10;b++){const e=SRS.estat(pid,t,b);if(e==='dominada')dom++;else if(e==='nova')nov++;else if(e==='lenta')len++;}
  if(dom===10)return 'dominada'; if(nov===10)return 'nova'; if(len>0)return 'lenta'; return 'practica';}
-const dom=()=>{let n=0;for(let t=1;t<=10;t++)if(estatTaula(t)==='dominada')n++;return n;};
+const dom=()=>{let n=0;for(const t of TAULES)if(estatTaula(t)==='dominada')n++;return n;};
 const MEDALLES=[
  {id:'enc10',ic:'🌱',nom:'Primers passos',desc:'10 encerts totals',obj:10,val:p=>p.encerts},
  {id:'enc100',ic:'⚡',nom:'Cent encerts',desc:'100 encerts totals',obj:100,val:p=>p.encerts},
@@ -309,7 +311,7 @@ const MEDALLES=[
  {id:'rat20',ic:'🌋',nom:'Erupció',desc:'Ratxa de 20 encerts',obj:20,val:p=>p.millorRatxa},
  {id:'taula1',ic:'🥉',nom:'Primera taula',desc:'Domina 1 taula',obj:1,val:()=>dom()},
  {id:'taula5',ic:'🥈',nom:'Mitja feina',desc:'Domina 5 taules',obj:5,val:()=>dom()},
- {id:'taula10',ic:'🥇',nom:'Campió del ×',desc:'Domina les 10 taules',obj:10,val:()=>dom()},
+ {id:'taula10',ic:'🥇',nom:'Campió del ×',desc:'Domina totes les taules (1–'+TAULES.length+')',obj:TAULES.length,val:()=>dom()},
  {id:'perf',ic:'🎯',nom:'Sense errors',desc:'Sessió de 10+ sense cap error',obj:1,val:p=>p.perfectes||0},
  {id:'rell',ic:'⏱️',nom:'Contra el temps',desc:'20 encerts en mode rellotge',obj:1,val:p=>p.rellotge20?1:0},
  {id:'repas',ic:'🧠',nom:'Bona memòria',desc:'Completa 5 repassos',obj:5,val:p=>p.repAssos||0},
@@ -341,7 +343,7 @@ function renderInici(){const p=perfil();comprovaMedalles();
  $('#st-punts').textContent=p.punts;
  $('#st-encerts').textContent=p.encerts;$('#st-ratxa').textContent=p.millorRatxa;
  const g=$('#graella-progres');g.innerHTML='';
- for(let t=1;t<=10;t++){const d=document.createElement('div');d.className='est-'+estatTaula(t);d.textContent=t;g.appendChild(d);}
+ for(const t of TAULES){const d=document.createElement('div');d.className='est-'+estatTaula(t);d.textContent=t;g.appendChild(d);}
  renderMedalles();UI.actualitza();}
 
 /* ---------- configuració ---------- */
@@ -354,9 +356,9 @@ function obreConfig(m){modeSel=m;$('#config-titol').textContent=TITOLS[m];
  if(m==='repte'){const t=taulaRepte();$('#config-titol').textContent=t?`Repte: taula del ${t}`:'Repte completat 🏆';}
  renderChips();UI.actualitza();mostra('#sc-config');}
 function renderChips(){const c=$('#chips-taules');c.innerHTML='';
- for(let t=1;t<=10;t++){const b=document.createElement('button');b.className='chip'+(cfg.taules.includes(t)?' actiu':'');b.textContent=t;
+ for(const t of TAULES){const b=document.createElement('button');b.className='chip'+(cfg.taules.includes(t)?' actiu':'');b.textContent=t;
   b.onclick=()=>{cfg.taules=cfg.taules.includes(t)?cfg.taules.filter(x=>x!==t):[...cfg.taules,t].sort((a,b)=>a-b);renderChips();};c.appendChild(b);}}
-$('#btn-totes').onclick=()=>{cfg.taules=[1,2,3,4,5,6,7,8,9,10];renderChips();};
+$('#btn-totes').onclick=()=>{cfg.taules=[...TAULES];renderChips();};
 $('#btn-cap').onclick=()=>{cfg.taules=[];renderChips();};
 $('#btn-lentes').onclick=()=>{const l=UI.taulesLentes();if(!l.length){alert('Cap taula marcada com a lenta ara mateix 🎉');return;}cfg.taules=l;renderChips();};
 $$('#chips-temps .chip').forEach(b=>b.onclick=()=>{cfg.min=+b.dataset.min;$$('#chips-temps .chip').forEach(x=>x.classList.toggle('actiu',x===b));});
@@ -396,7 +398,7 @@ function serveix(p){preguntaActual=p;tInici=Date.now();ajudaUsada=false;input=''
 function pintaResposta(){const el=$('#j-resposta');el.textContent=input||'?';el.className='resposta';}
 $('#btn-veure').onclick=()=>{ajudaUsada=true;$('#j-ajuda').hidden=false;$('#j-ajuda').innerHTML=htmlAjuda(preguntaActual);$('#btn-veure').hidden=true;};
 function htmlAjuda(p){const a=p.a,b=p.b;
- let m='<div class="matriu">';for(let r=0;r<b;r++)m+='<div class="fila">'+'<i></i>'.repeat(a)+'</div>';m+='</div>';
+ let m='<div class="matriu'+(a>10?' gran':'')+'">';for(let r=0;r<b;r++)m+='<div class="fila">'+'<i></i>'.repeat(a)+'</div>';m+='</div>';
  let s='<div class="salts">';for(let r=1;r<=b;r++){s+=`<span class="salt">${a*r}</span>`;if(r<b)s+=`<span class="fletxa"><em>+${a}</em><span>→</span></span>`;}s+='</div>';
  return m+s+`<p class="ajuda-text">${b} files de ${a} · comptant de ${a} en ${a}, ${b} vegades</p>`;}
 /* teclat */
@@ -463,13 +465,13 @@ function fiSessio(){pararTimer();if(esperant){clearTimeout(esperant);esperant=nu
  UI.actualitza();mostra('#sc-resultats');}
 $('#btn-tauler').onclick=()=>{renderInici();mostra('#sc-inici');};
 $('#btn-torna').onclick=()=>comenca();
-$('#btn-repassa').onclick=()=>{modeSel='repas';cfg.taules=[1,2,3,4,5,6,7,8,9,10];comenca();};
+$('#btn-repassa').onclick=()=>{modeSel='repas';cfg.taules=[...TAULES];comenca();};
 
 /* ---------- presentació ---------- */
 let pPreg=null,pStats=null;
-function iniciaPresentacio(){UI.setMode('presentacio',cfg.taules.length?cfg.taules:[1,2,3,4,5,6,7,8,9,10]);
+function iniciaPresentacio(){UI.setMode('presentacio',cfg.taules.length?cfg.taules:TAULES);
  pStats={ok:0,ko:0,ratxa:0,set:new Set()};mostra('#sc-presentacio');pNova();}
-function pNova(){pPreg={a:tria(cfg.taules.length?cfg.taules:[1,2,3,4,5,6,7,8,9,10]),b:R10(),tipus:'directa'};
+function pNova(){pPreg={a:tria(cfg.taules.length?cfg.taules:TAULES),b:R10(),tipus:'directa'};
  pStats.set.add(pPreg.a);
  $('#p-pregunta').innerHTML=`<span>${pPreg.a}</span><span>×</span><span>${pPreg.b}</span><span>=</span><span class="inc">?</span>`;
  $('#p-ajuda').hidden=true;pintaP();renderPTaules();}
@@ -486,8 +488,8 @@ function renderPTaules(){const c=$('#p-taules');c.innerHTML='';[...pStats.set].s
 /* ---------- fitxa i CSV ---------- */
 $('#btn-fitxa').onclick=obreFitxa;
 function obreFitxa(){let fets=UI.fetsFitxa();
- if(!fets.length){const pool=[1,2,3,4,5,6,7,8,9,10].filter(t=>estatTaula(t)!=='dominada');
-  const base=pool.length?pool:[1,2,3,4,5,6,7,8,9,10];fets=[];
+ if(!fets.length){const pool=TAULES.filter(t=>estatTaula(t)!=='dominada');
+  const base=pool.length?pool:TAULES;fets=[];
   for(let i=0;i<20;i++)fets.push({a:tria(base),b:R10(),tipus:'directa'});}
  const c=$('#fitxa-contingut');c.innerHTML='';
  fets.forEach(f=>{const d=document.createElement('div');d.className='fitxa-item';

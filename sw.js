@@ -1,7 +1,8 @@
 /* Service worker de Taules × · xarxa primer, amb còpia local per treballar sense connexió */
-const CACHE = 'taulesx-v1';
+const CACHE = 'taulesx-v2';
 const FITXERS = ['./', 'index.html', 'srs.js', 'ui-srs.js', 'manifest.webmanifest',
-                 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
+                 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
+                 'fonts/OpenDyslexic-Regular.woff2', 'fonts/OpenDyslexic-Bold.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(

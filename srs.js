@@ -4,7 +4,7 @@
    · El rating es deriva de encert + temps + ajuda (l'infant no s'autoavalua).
    · «Veure-ho» = codificació, no recuperació → reaprendre sense càstig.
    · Intervals curts i tolerants a sessions 2–3 cops/setmana.
-   · La inversa es desbloqueja quan la directa està graduada.
+   · La inversa i la divisió es desbloquegen quan la directa està graduada.
    ===================================================================== */
 const SRS = (() => {
   'use strict';
@@ -37,12 +37,12 @@ const SRS = (() => {
   /* ------------------------------ Claus ------------------------------- */
   const clau = (a, b, tipus) => {
     const m = Math.min(a, b), M = Math.max(a, b);
-    return (tipus === 'inversa' ? 'i' : '') + m + 'x' + M;
+    return (tipus === 'inversa' ? 'i' : tipus === 'divisio' ? 'd' : '') + m + 'x' + M;
   };
   const descompon = k => {
-    const inv = k.startsWith('i');
-    const [m, M] = (inv ? k.slice(1) : k).split('x').map(Number);
-    return { a: m, b: M, tipus: inv ? 'inversa' : 'directa' };
+    const pre = k[0] === 'i' ? 'inversa' : k[0] === 'd' ? 'divisio' : 'directa';
+    const [m, M] = (pre === 'directa' ? k : k.slice(1)).split('x').map(Number);
+    return { a: m, b: M, tipus: pre };
   };
 
   /* --------------------------- Nucli SM-2 ----------------------------- */
@@ -64,7 +64,7 @@ const SRS = (() => {
   };
 
   function record(pid, a, b, tipus, r) {
-    if (tipus === 'inversa' && !invUnlocked(pid, a, b)) return null;
+    if (tipus !== 'directa' && !invUnlocked(pid, a, b)) return null;
     const k = clau(a, b, tipus);
     const c = card(pid, k);
     const ara = Date.now();

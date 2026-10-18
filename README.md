@@ -16,7 +16,16 @@ Aplicació web per **practicar les taules de multiplicar** de l'1 al 13, pensada
 | 🏆 **Repte progressiu** | Es desbloquegen les taules una a una. Per superar-ne una cal resoldre 10 preguntes amb un 80 % d'encerts com a mínim. |
 | 📽 **Mode presentació** | Per projectar a la pissarra i jugar a classe amb tot el grup. |
 
-També es pot activar la **pregunta inversa** (`___ × 7 = 42`) en la pràctica lliure i en el mode contra rellotge.
+### Tipus de pregunta
+
+En la pràctica lliure, el contra rellotge i el mode presentació es pot triar:
+
+- **× Multiplicar:** `6 × 7 = ?`
+- **? Invers:** `? × 6 = 42`
+- **÷ Dividir:** `42 ÷ 7 = ?` (el divisor pot ser el factor de la taula o el multiplicador, i el resultat arriba fins al 13)
+- **🔀 Barreja:** els tres tipus alhora
+
+A les divisions, el botó «Veure-ho» pregunta *quantes vegades hi cap el divisor* i ho mostra amb la mateixa matriu i els mateixos salts que les multiplicacions.
 
 ### Mode d'ús: casa o classe
 
@@ -45,7 +54,7 @@ El botó **«Veure-ho»** mostra la multiplicació com una matriu de files i col
 ### Motivació
 
 - Punts per encert, amb bonificació per ratxa.
-- 12 medalles (ratxes, encerts totals, taules dominades, sessions sense errors, mode rellotge, repassos…).
+- 13 medalles (ratxes, encerts totals, taules dominades, sessions sense errors, mode rellotge, repassos, divisions…).
 - Nivells i avatars que es desbloquegen amb les medalles.
 - Perfils múltiples al mateix dispositiu, de manera que cada alumne té el seu progrés.
 
@@ -56,6 +65,18 @@ El botó **«Veure-ho»** mostra la multiplicació com una matriu de files i col
 - **Fitxa imprimible** amb 20 operacions, triades segons el que cada alumne necessita treballar.
 - **Exportació del progrés individual en CSV** (fet, tipus, estat, repeticions, encerts, errors, interval i proper repàs).
 - Tema clar i fosc.
+
+### Accessibilitat
+
+Cada perfil té els seus propis ajustos (botó ♿ a la pantalla d'inici), que s'apliquen en entrar-hi i es guarden amb la còpia de seguretat:
+
+- **Tipus de lletra per a dislèxia** ([OpenDyslexic](https://opendyslexic.org/)) i opció de **més espai** entre lletres, paraules i línies.
+- **Mida del text:** normal, gran o molt gran.
+- **Tecles grans** al teclat numèric.
+- **Formes a més de colors** (✓ ◐ ⚠) a l'estat de les taules, per a persones amb daltonisme.
+- **Menys moviment:** sense animacions ni sacsejades. També es respecta l'ajust del sistema «reduir moviment».
+- **So** i **vibració** en encertar i en fallar (la vibració no funciona a l'iPhone ni a l'iPad).
+- **Lectura de la pregunta en veu alta**, amb botó per repetir-la. Cal tenir una veu en català instal·lada al dispositiu.
 
 ### Còpia de seguretat
 
@@ -78,7 +99,7 @@ El mòdul `srs.js` implementa una versió adaptada de **SM-2** pensada per a inf
 - Els errors dins d'una sessió es **reinsereixen** unes quantes preguntes més endavant.
 - Demanar ajuda no penalitza: el fet es torna a treballar sense baixar-ne la facilitat.
 - Les multiplicacions són commutatives (`3 × 12` i `12 × 3` comparteixen targeta).
-- La pregunta inversa només entra a l'SRS quan la directa corresponent ja s'ha après.
+- Les preguntes inverses i les divisions només entren a l'SRS quan la multiplicació corresponent ja s'ha après. Cada tipus té la seva pròpia targeta.
 - Pensat per a sessions de 2–3 cops per setmana.
 
 ## Estructura del projecte
@@ -93,6 +114,10 @@ El mòdul `srs.js` implementa una versió adaptada de **SM-2** pensada per a inf
 ├── icon-512.png
 ├── icon-maskable-512.png
 ├── apple-touch-icon.png       Icona per a iPad i iPhone
+├── fonts/
+│   ├── OpenDyslexic-Regular.woff2
+│   ├── OpenDyslexic-Bold.woff2
+│   └── OFL.txt                Llicència de la tipografia
 └── README.md
 ```
 
@@ -111,7 +136,7 @@ Tot es guarda al **`localStorage` del navegador** de cada dispositiu:
 | `taulesx.mode` | Mode d'ús del dispositiu (casa o classe) |
 | `taulesx.pin` | PIN de la vista de classe (només el seu hash) |
 
-No hi ha servidor, ni analítica, ni cookies de seguiment. Si s'esborren les dades del navegador, es perd el progrés; per això convé fer-ne una còpia de seguretat de tant en tant (JSON). L'aplicació et recorda quan fa més d'un mes de l'última.
+No hi ha servidor propi ni cookies de seguiment. L'únic que es compta és el nombre de visites a la pàgina, de manera anònima, amb [GoatCounter](https://www.goatcounter.com/), una eina que no usa cookies ni guarda dades personals. El progrés de l'alumnat no s'envia enlloc. Si s'esborren les dades del navegador, es perd el progrés; per això convé fer-ne una còpia de seguretat de tant en tant (JSON). L'aplicació et recorda quan fa més d'un mes de l'última.
 
 ## Ús en local
 
@@ -127,6 +152,10 @@ El projecte es publica amb **GitHub Pages**. Tots els fitxers de l'estructura an
 - **Ordre del repte progressiu:** constant `ORDRE`.
 - **Paràmetres de l'SRS** (passos, intervals, llindars de temps, màxim de repassos per sessió): objecte `CONFIG` a `srs.js`.
 - **Versió de la memòria cau sense connexió:** constant `CACHE` a `sw.js`. Canvia-la (per exemple a `taulesx-v2`) si vols forçar que els dispositius esborrin la còpia local antiga.
+
+## Crèdits
+
+La tipografia [OpenDyslexic](https://opendyslexic.org/), d'Abbie Gonzalez, es distribueix amb la llicència SIL Open Font License 1.1 (vegeu `fonts/OFL.txt`).
 
 ## Autoria
 

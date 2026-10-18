@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Taules ×">
+<script data-goatcounter="https://albertgodina.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <!-- Depèn de: srs.js i ui-srs.js (mateixa carpeta) -->
 <style>
 :root{--fons:#f2efe9;--tinta:#201d1a;--card:#fbf9f5;--linia:#e0dbd1;--accent:#e4572e;--verd:#2f9e6e;--vermell:#c0392b;--ombra:0 8px 24px rgb(0 0 0/.08)}
@@ -108,6 +109,22 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 .fitxa-item{border-bottom:1px solid #bbb;padding:12px 0;font-size:1.4rem;font-family:ui-monospace,Menlo,monospace}
 .fitxa-titol{margin:0 0 4px}
 .fitxa-data{opacity:.7;margin:0 0 18px}
+@font-face{font-family:'OpenDyslexic';src:url('fonts/OpenDyslexic-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'OpenDyslexic';src:url('fonts/OpenDyslexic-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+button,input{font-family:inherit}
+body.f-dislexia{font-family:'OpenDyslexic','Comic Sans MS','Trebuchet MS',system-ui,sans-serif}
+body.espai{letter-spacing:.05em;word-spacing:.16em;line-height:1.6}
+.tecles-grans .teclat{max-width:440px;gap:14px}
+.tecles-grans .teclat button{padding:26px 0;font-size:1.9rem}
+body.calma *,body.calma *::before,body.calma *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+body.formes .est-dominada::after{content:" ✓"}
+body.formes .est-practica::after{content:" ◐"}
+body.formes .est-lenta::after{content:" ⚠"}
+body.formes .cel{font-size:11px;line-height:16px;text-align:center;font-weight:800;overflow:hidden}
+body.formes .cel.est-dominada::after{content:"✓"}
+body.formes .cel.est-practica::after{content:"◐"}
+body.formes .cel.est-lenta::after{content:"⚠"}
 .screen.ample{max-width:920px}
 .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .taula-classe{width:100%;border-collapse:collapse;font-size:.85rem}
@@ -171,7 +188,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
 <!-- ══════════ INICI ══════════ -->
 <section id="sc-inici" class="screen">
   <header class="cap"><span class="logo">taules<span class="x">×</span></span>
-    <span class="row"><button class="btn-icon btn-tema">🌙</button><button class="btn petit secundari" id="btn-perfils">← Perfils</button></span></header>
+    <span class="row"><button class="btn-icon" id="btn-acc" title="Accessibilitat" aria-label="Accessibilitat">♿</button><button class="btn-icon btn-tema">🌙</button><button class="btn petit secundari" id="btn-perfils">← Perfils</button></span></header>
   <div class="row" style="align-items:center;gap:12px">
     <button id="btn-avatar" class="avatar">🙂</button>
     <div><h2 id="hola" style="margin:0">Hola!</h2><p id="nivell-titol" class="mono" style="margin:2px 0 0"></p></div>
@@ -218,6 +235,24 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   </div>
 </section>
 
+<!-- ══════════ ACCESSIBILITAT ══════════ -->
+<section id="sc-acc" class="screen">
+  <header class="cap"><span class="logo">taules<span class="x">×</span></span><button class="btn petit secundari" id="acc-enrere">← Enrere</button></header>
+  <h2>♿ Accessibilitat</h2>
+  <p class="nota">Ajustos del perfil de <b id="acc-nom"></b>. Es guarden amb el perfil i s'apliquen cada vegada que entra.</p>
+  <div class="card centre"><div class="pregunta" style="font-size:2.2rem;margin:4px 0"><span>7</span><span>×</span><span>8</span><span>=</span><span class="inc">56</span></div><p class="nota" style="margin:0">Així es veurà la pregunta</p></div>
+  <div class="card"><h4>Tipus de lletra</h4><div class="chips" id="chips-font"><button class="chip" data-v="estandard">Estàndard</button><button class="chip" data-v="dislexia">Per a dislèxia</button></div>
+    <p class="nota" style="margin-bottom:0">Usa OpenDyslexic. A cada persona li va millor una cosa diferent: prova-ho i queda't amb el que es llegeixi més còmode.</p></div>
+  <div class="card"><h4>Mida del text</h4><div class="chips" id="chips-mida"><button class="chip" data-v="0">Normal</button><button class="chip" data-v="1">Gran</button><button class="chip" data-v="2">Molt gran</button></div></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-espai" style="width:auto;margin:0"><span><strong>Més espai</strong> — entre lletres, paraules i línies</span></label></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-teclat" style="width:auto;margin:0"><span><strong>Tecles grans</strong> — teclat numèric més gran, fàcil de tocar</span></label></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-formes" style="width:auto;margin:0"><span><strong>Formes a més de colors</strong> — afegeix ✓ ◐ ⚠ a l'estat de les taules (útil en daltonisme)</span></label></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-calma" style="width:auto;margin:0"><span><strong>Menys moviment</strong> — sense animacions ni sacsejades</span></label></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-so" style="width:auto;margin:0"><span><strong>So</strong> en encertar i en fallar</span></label>
+    <label class="switch" style="margin-top:12px"><input type="checkbox" id="acc-vibra" style="width:auto;margin:0"><span><strong>Vibració</strong> en encertar i en fallar<br><small id="acc-vibra-nota" class="nota">Aquest dispositiu no admet la vibració (per exemple, l'iPhone i l'iPad).</small></span></label></div>
+  <div class="card"><label class="switch"><input type="checkbox" id="acc-parla" style="width:auto;margin:0"><span><strong>Llegeix la pregunta en veu alta</strong><br><small class="nota">Cal que el dispositiu tingui una veu en català instal·lada.</small><small id="acc-parla-nota" class="nota"><br>Aquest navegador no admet la lectura en veu alta.</small></span></label></div>
+</section>
+
 <!-- ══════════ CONFIGURACIÓ ══════════ -->
 <section id="sc-config" class="screen">
   <header class="cap"><span class="logo">taules<span class="x">×</span></span><button class="btn petit secundari" id="btn-torna-inici">← Enrere</button></header>
@@ -238,7 +273,13 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   </div>
   <div class="card" id="cfg-tipus">
     <h4>Tipus de pregunta</h4>
-    <label class="switch"><input type="checkbox" id="chk-invers" style="width:auto;margin:0"><span><strong>Mode invers</strong> — Dona el resultat, demana els factors (? × 6 = 42)</span></label>
+    <div class="chips" id="chips-tipus">
+      <button class="chip actiu" data-tipus="directa">× Multiplicar</button>
+      <button class="chip" data-tipus="inversa">? Invers</button>
+      <button class="chip" data-tipus="divisio">÷ Dividir</button>
+      <button class="chip" data-tipus="barreja">🔀 Barreja</button>
+    </div>
+    <p class="nota" id="tipus-info" style="margin-bottom:0"></p>
   </div>
   <button class="btn gran" id="btn-comenca">Començar →</button>
 </section>
@@ -253,7 +294,7 @@ input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--l
   <div class="ratxa-row"><span class="mono">Ratxa:</span><span id="j-ratxa" class="dots"></span><div class="barra"><i id="j-barra"></i></div></div>
   <p class="mono centre" id="j-num">PREGUNTA 1</p>
   <div id="j-pregunta" class="pregunta"></div>
-  <div class="centre"><button class="btn secundari petit" id="btn-veure">👁 Veure-ho</button></div>
+  <div class="centre"><button class="btn secundari petit" id="btn-veure">👁 Veure-ho</button> <button class="btn secundari petit" id="btn-parla" hidden>🔊 Repeteix</button></div>
   <div id="j-ajuda" class="ajuda" hidden></div>
   <div id="j-resposta" class="resposta">?</div>
   <div id="j-feedback" class="feedback" hidden></div>
@@ -332,12 +373,12 @@ const LSK='taulesx.perfils.v1';
 
 let perfils=carrega(LSK,[]);
 let pid=null, modeSel=null;
-let cfg={taules:[...TAULES],min:2,ops:20,invers:false};
+let cfg={taules:[...TAULES],min:2,ops:20,tipus:'directa'};
 let sessio=null, preguntaActual=null, tInici=0, ajudaUsada=false, input='', total=0, fi=0, timer=null, taulaRepteActual=null, esperant=null;
 
 const ORDRE=[2,5,10,11,4,3,6,7,8,9,12,13,1];
 const TITOLS={lliure:'Pràctica lliure',rellotge:'Contra rellotge',repas:'Repàs intel·ligent',repte:'Repte progressiu',presentacio:'Mode presentació'};
-const VIS={lliure:['taules','ops','tipus'],rellotge:['taules','temps','tipus'],repas:['taules'],repte:[],presentacio:['taules']};
+const VIS={lliure:['taules','ops','tipus'],rellotge:['taules','temps','tipus'],repas:['taules'],repte:[],presentacio:['taules','tipus']};
 
 /* ---------- pantalles i tema ---------- */
 function mostra(id){$$('.screen').forEach(s=>s.classList.remove('activa'));$(id).classList.add('activa');window.scrollTo(0,0);}
@@ -350,13 +391,13 @@ function renderPerfils(){const c=$('#llista-perfils');c.innerHTML='';
  perfils.forEach(p=>{const b=document.createElement('button');b.className='btn secundari perfil';
   b.innerHTML=`<strong>${esc(p.nom)}</strong><small>⭐ ${p.punts} pts</small>`;b.onclick=()=>entra(p.id);c.appendChild(b);});
  renderCopiaInfo();aplicaMode();}
-function entra(id){pid=id;UI.setPerfil(id);renderInici();mostra('#sc-inici');}
+function entra(id){pid=id;UI.setPerfil(id);carregaAcc();renderInici();mostra('#sc-inici');}
 $('#btn-nou-perfil').onclick=()=>{$('#form-perfil').hidden=false;$('#inp-nom').focus();};
 $('#btn-cancela').onclick=()=>{$('#form-perfil').hidden=true;};
 $('#btn-crear').onclick=()=>{const nom=$('#inp-nom').value.trim();if(!nom)return;
  perfils.push({id:'p'+Date.now(),nom,punts:0,encerts:0,millorRatxa:0,record:0,rellotge20:false,desblocades:[],medalles:[]});
  desa(LSK,perfils);$('#inp-nom').value='';$('#form-perfil').hidden=true;renderPerfils();};
-$('#btn-perfils').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
+$('#btn-perfils').onclick=()=>{reiniciaAcc();renderPerfils();mostra('#sc-perfils');};
 
 /* ---------- inici: estat, medalles, avatars, nivells ---------- */
 function estatTaula(t,id=pid){let dom=0,nov=0,len=0;
@@ -373,6 +414,7 @@ const MEDALLES=[
  {id:'taula1',ic:'🥉',nom:'Primera taula',desc:'Domina 1 taula',obj:1,val:()=>dom()},
  {id:'taula5',ic:'🥈',nom:'Mitja feina',desc:'Domina 5 taules',obj:5,val:()=>dom()},
  {id:'taula10',ic:'🥇',nom:'Campió del ×',desc:'Domina totes les taules (1–'+TAULES.length+')',obj:TAULES.length,val:()=>dom()},
+ {id:'div',ic:'➗',nom:'Divisor',desc:'50 encerts en divisions',obj:50,val:p=>p.divisions||0},
  {id:'perf',ic:'🎯',nom:'Sense errors',desc:'Sessió de 10+ sense cap error',obj:1,val:p=>p.perfectes||0},
  {id:'rell',ic:'⏱️',nom:'Contra el temps',desc:'20 encerts en mode rellotge',obj:1,val:p=>p.rellotge20?1:0},
  {id:'repas',ic:'🧠',nom:'Bona memòria',desc:'Completa 5 repassos',obj:5,val:p=>p.repAssos||0},
@@ -387,7 +429,7 @@ function renderMedalles(){const p=perfil();const c=$('#medalles');c.innerHTML=''
   c.appendChild(d);});}
 const NIVELLS=[[0,'Aprenent'],[2,'Calculista'],[5,'Aspirant a crack'],[10,'Crack de les taules'],[20,'Mestre del ×'],[40,'Llegenda del ×']];
 const nivellTitol=n=>{let t=NIVELLS[0][1];NIVELLS.forEach(([lv,nom])=>{if(n>=lv)t=nom;});return t;};
-const AVATARS=[['🙂',0,'de bon inici'],['😎',2,'amb 2 medalles'],['🦊',4,'amb 4 medalles'],['🐯',7,'amb 7 medalles'],['🦄',10,'amb 10 medalles'],['👑',12,'amb totes les medalles']];
+const AVATARS=[['🙂',0,'de bon inici'],['😎',2,'amb 2 medalles'],['🦊',4,'amb 4 medalles'],['🐯',7,'amb 7 medalles'],['🦄',10,'amb 10 medalles'],['👑',MEDALLES.length,'amb totes les medalles']];
 $('#btn-avatar').onclick=()=>{const c=$('#tria-avatar');if(!c.hidden){c.hidden=true;return;}
  const p=perfil();c.hidden=false;c.innerHTML='<h4>Tria el teu avatar</h4><div class="chips"></div>';
  const wrap=c.querySelector('.chips');
@@ -415,7 +457,7 @@ function obreConfig(m){modeSel=m;$('#config-titol').textContent=TITOLS[m];
  $('#cfg-ops').hidden=!v.includes('ops');$('#cfg-tipus').hidden=!v.includes('tipus');
  $('#repas-resum').hidden=m!=='repas';
  if(m==='repte'){const t=taulaRepte();$('#config-titol').textContent=t?`Repte: taula del ${t}`:'Repte completat 🏆';}
- renderChips();UI.actualitza();mostra('#sc-config');}
+ renderChips();renderTipus();UI.actualitza();mostra('#sc-config');}
 function renderChips(){const c=$('#chips-taules');c.innerHTML='';
  for(const t of TAULES){const b=document.createElement('button');b.className='chip'+(cfg.taules.includes(t)?' actiu':'');b.textContent=t;
   b.onclick=()=>{cfg.taules=cfg.taules.includes(t)?cfg.taules.filter(x=>x!==t):[...cfg.taules,t].sort((a,b)=>a-b);renderChips();};c.appendChild(b);}}
@@ -424,7 +466,10 @@ $('#btn-cap').onclick=()=>{cfg.taules=[];renderChips();};
 $('#btn-lentes').onclick=()=>{const l=UI.taulesLentes();if(!l.length){alert('Cap taula marcada com a lenta ara mateix 🎉');return;}cfg.taules=l;renderChips();};
 $$('#chips-temps .chip').forEach(b=>b.onclick=()=>{cfg.min=+b.dataset.min;$$('#chips-temps .chip').forEach(x=>x.classList.toggle('actiu',x===b));});
 $$('#chips-ops .chip').forEach(b=>b.onclick=()=>{cfg.ops=+b.dataset.ops;$$('#chips-ops .chip').forEach(x=>x.classList.toggle('actiu',x===b));});
-$('#chk-invers').onchange=e=>cfg.invers=e.target.checked;
+const TIPUS_INFO={directa:'Exemple: 6 × 7 = ?',inversa:'Dona el resultat i demana un factor: ? × 6 = 42.',divisio:'Divideix pensant en la taula: 42 ÷ 7 = ?',barreja:'Barreja multiplicacions, inversos i divisions.'};
+function renderTipus(){$$('#chips-tipus .chip').forEach(b=>b.classList.toggle('actiu',b.dataset.tipus===cfg.tipus));
+ $('#tipus-info').textContent=TIPUS_INFO[cfg.tipus]+(cfg.tipus==='directa'?'':' Compten per al repàs quan ja saps la multiplicació corresponent.');}
+$$('#chips-tipus .chip').forEach(b=>b.onclick=()=>{cfg.tipus=b.dataset.tipus;renderTipus();});
 $('#btn-torna-inici').onclick=()=>{renderInici();mostra('#sc-inici');};
 
 /* ---------- joc ---------- */
@@ -448,16 +493,30 @@ function arrancaTimer(){pararTimer();timer=setInterval(()=>{const rest=Math.max(
  $('#j-temps').textContent='⏱ '+fmt(rest);$('#j-barra').style.width=(100*(1-rest/(cfg.min*60000)))+'%';
  if(rest<=0){pararTimer();fiSessio();}},250);}
 function pararTimer(){if(timer){clearInterval(timer);timer=null;}}
+/* preguntes: multiplicació, invers i divisió */
+const divInfo=p=>({dv:p.div==='a'?p.a:p.b,q:p.div==='a'?p.b:p.a,dd:p.a*p.b});
+function novaP(a,tipus){const p={a,b:R10(),tipus};if(tipus==='divisio')p.div=Math.random()<.5?'a':'b';return p;}
+const tipusTriat=()=>cfg.tipus==='barreja'?tria(['directa','inversa','divisio']):cfg.tipus;
+function respostaCorrecta(p){return p.tipus==='inversa'?p.a:p.tipus==='divisio'?divInfo(p).q:p.a*p.b;}
+function htmlPreg(p){const r=p.a*p.b;
+ if(p.tipus==='inversa')return `<span class="inc">?</span><span>×</span><span>${p.b}</span><span>=</span><span>${r}</span>`;
+ if(p.tipus==='divisio'){const x=divInfo(p);return `<span>${x.dd}</span><span>÷</span><span>${x.dv}</span><span>=</span><span class="inc">?</span>`;}
+ return `<span>${p.a}</span><span>×</span><span>${p.b}</span><span>=</span><span class="inc">?</span>`;}
+function textSolucio(p){
+ if(p.tipus==='inversa')return `<b>${p.a}</b> × ${p.b} = ${p.a*p.b}`;
+ if(p.tipus==='divisio'){const x=divInfo(p);return `${x.dd} ÷ ${x.dv} = <b>${x.q}</b>`;}
+ return `${p.a} × ${p.b} = <b>${p.a*p.b}</b>`;}
+function htmlAjudaP(p){if(p.tipus!=='divisio')return htmlAjuda(p);const x=divInfo(p);
+ return `<p class="ajuda-text" style="margin:0 0 10px">Quantes vegades hi cap el <b>${x.dv}</b> dins del <b>${x.dd}</b>?</p>`+htmlAjuda({a:x.dv,b:x.q});}
 function serveix(p){preguntaActual=p;tInici=Date.now();ajudaUsada=false;input='';sessio.n++;
+ if(p.tipus==='divisio'&&!p.div)p.div=Math.random()<.5?'a':'b';
  $('#j-num').textContent='PREGUNTA '+sessio.n;
  if(total!==Infinity)$('#j-barra').style.width=Math.min(100,100*(sessio.n-1)/total)+'%';
- const r=p.a*p.b;
- $('#j-pregunta').innerHTML=p.tipus==='inversa'
-  ?`<span class="inc">?</span><span>×</span><span>${p.b}</span><span>=</span><span>${r}</span>`
-  :`<span>${p.a}</span><span>×</span><span>${p.b}</span><span>=</span><span class="inc">?</span>`;
- $('#j-ajuda').hidden=true;$('#btn-veure').hidden=false;$('#j-feedback').hidden=true;pintaResposta();}
+ $('#j-pregunta').innerHTML=htmlPreg(p);
+ $('#j-ajuda').hidden=true;$('#btn-veure').hidden=false;$('#j-feedback').hidden=true;pintaResposta();
+ if(acc.parla)parla(p);}
 function pintaResposta(){const el=$('#j-resposta');el.textContent=input||'?';el.className='resposta';}
-$('#btn-veure').onclick=()=>{ajudaUsada=true;$('#j-ajuda').hidden=false;$('#j-ajuda').innerHTML=htmlAjuda(preguntaActual);$('#btn-veure').hidden=true;};
+$('#btn-veure').onclick=()=>{ajudaUsada=true;$('#j-ajuda').hidden=false;$('#j-ajuda').innerHTML=htmlAjudaP(preguntaActual);$('#btn-veure').hidden=true;};
 function htmlAjuda(p){const a=p.a,b=p.b;
  let m='<div class="matriu'+(a>10?' gran':'')+'">';for(let r=0;r<b;r++)m+='<div class="fila">'+'<i></i>'.repeat(a)+'</div>';m+='</div>';
  let s='<div class="salts">';for(let r=1;r<=b;r++){s+=`<span class="salt">${a*r}</span>`;if(r<b)s+=`<span class="fletxa"><em>+${a}</em><span>→</span></span>`;}s+='</div>';
@@ -471,18 +530,18 @@ document.addEventListener('keydown',e=>{if(!$('#sc-joc').classList.contains('act
 function salta(){if(esperant){clearTimeout(esperant);esperant=null;seguent();}}
 function avalua(){
  if(input==='')return;
- const p=preguntaActual,correcta=p.tipus==='inversa'?p.a:p.a*p.b,val=+input,ok=val===correcta,ms=Date.now()-tInici;
+ const p=preguntaActual,correcta=respostaCorrecta(p),val=+input,ok=val===correcta,ms=Date.now()-tInici;
  let guany=0;
- if(ok){sessio.encerts++;sessio.ratxa++;sessio.millor=Math.max(sessio.millor,sessio.ratxa);guany=10+(sessio.ratxa>=3?5:0);sessio.punts+=guany;}
+ if(ok){if(p.tipus==='divisio')sessio.divOk=(sessio.divOk||0)+1;sessio.encerts++;sessio.ratxa++;sessio.millor=Math.max(sessio.millor,sessio.ratxa);guany=10+(sessio.ratxa>=3?5:0);sessio.punts+=guany;}
  else{sessio.errors++;sessio.ratxa=0;}
  const t=p.tipus==='inversa'?p.b:p.a;(sessio.temps[t]=sessio.temps[t]||[]).push(ms);
  pintaResposta();$('#j-resposta').classList.add(ok?'ok':'ko');if(!ok)$('#j-resposta').textContent=correcta;
  const f=$('#j-feedback');f.hidden=false;f.className='feedback '+(ok?'fb-ok':'fb-ko');
  f.innerHTML=ok?`✅ Correcte! +${guany} punts${sessio.ratxa>=3?` · 🔥 ratxa de ${sessio.ratxa}`:''}<small>toca per continuar ▸</small>`
-  :`❌ Ops! ${p.tipus==='inversa'?`<b>${p.a}</b> × ${p.b} = ${p.a*p.b}`:`${p.a} × ${p.b} = <b>${correcta}</b>`}<small>toca per continuar ▸</small>`;
+  :`❌ Ops! ${textSolucio(p)}<small>toca per continuar ▸</small>`;
  f.onclick=salta;
- pintaCapJoc();
- UI.resposta({a:p.a,b:p.b,tipus:p.tipus},{ok,ms,ajuda:ajudaUsada});
+ sensorial(ok);pintaCapJoc();
+ UI.resposta({a:p.a,b:p.b,tipus:p.tipus,div:p.div},{ok,ms,ajuda:ajudaUsada});
  esperant=setTimeout(()=>{esperant=null;seguent();},ok?1100:2600);}
 function pintaCapJoc(){$('#j-punts').textContent=sessio.punts;
  const d=$('#j-ratxa');d.innerHTML='';for(let i=0;i<5;i++){const dot=document.createElement('i');if(i<Math.min(5,sessio.ratxa))dot.className='plena';d.appendChild(dot);}}
@@ -494,7 +553,7 @@ function seguent(){
  serveix(p);}
 function genera(){if(modeSel==='repas')return null;
  const t=modeSel==='repte'?taulaRepteActual:tria(cfg.taules);
- return {a:t,b:R10(),tipus:cfg.invers?'inversa':'directa'};}
+ return novaP(t,modeSel==='repte'?'directa':tipusTriat());}
 $('#btn-surt').onclick=()=>{if(sessio&&(sessio.encerts+sessio.errors)>0)fiSessio();else{renderInici();mostra('#sc-inici');}};
 
 /* ---------- resultats ---------- */
@@ -507,6 +566,7 @@ function fiSessio(){pararTimer();if(esperant){clearTimeout(esperant);esperant=nu
   if(totR>=10&&precR>=0.8){p.desblocades.push(taulaRepteActual);desbloc=taulaRepteActual;}}
  const tot=sessio.encerts+sessio.errors;
  if(modeSel==='repas')p.repAssos=(p.repAssos||0)+1;
+ p.divisions=(p.divisions||0)+(sessio.divOk||0);
  if(sessio.errors===0&&tot>=10)p.perfectes=(p.perfectes||0)+1;
  const record=sessio.punts>p.record;if(record)p.record=sessio.punts;
  const noves=comprovaMedalles();
@@ -532,11 +592,11 @@ $('#btn-repassa').onclick=()=>{modeSel='repas';cfg.taules=[...TAULES];comenca();
 let pPreg=null,pStats=null;
 function iniciaPresentacio(){UI.setMode('presentacio',cfg.taules.length?cfg.taules:TAULES);
  pStats={ok:0,ko:0,ratxa:0,set:new Set()};mostra('#sc-presentacio');pNova();}
-function pNova(){pPreg={a:tria(cfg.taules.length?cfg.taules:TAULES),b:R10(),tipus:'directa'};
+function pNova(){pPreg=novaP(tria(cfg.taules.length?cfg.taules:TAULES),tipusTriat());
  pStats.set.add(pPreg.a);
- $('#p-pregunta').innerHTML=`<span>${pPreg.a}</span><span>×</span><span>${pPreg.b}</span><span>=</span><span class="inc">?</span>`;
+ $('#p-pregunta').innerHTML=htmlPreg(pPreg);
  $('#p-ajuda').hidden=true;pintaP();renderPTaules();}
-function pMostra(){$('#p-ajuda').hidden=false;$('#p-ajuda').innerHTML=`<p class="resultat">${pPreg.a*pPreg.b}</p>`+htmlAjuda(pPreg);}
+function pMostra(){$('#p-ajuda').hidden=false;$('#p-ajuda').innerHTML=`<p class="resultat">${respostaCorrecta(pPreg)}</p>`+htmlAjudaP(pPreg);}
 $('#p-mostra').onclick=pMostra;
 $('#p-graella').onclick=()=>{const el=$('#p-ajuda');if(el.hidden)pMostra();else el.hidden=true;};
 $('#p-okbtn').onclick=()=>{pStats.ok++;pStats.ratxa++;pNova();};
@@ -554,13 +614,55 @@ function obreFitxa(){let fets=UI.fetsFitxa();
   for(let i=0;i<20;i++)fets.push({a:tria(base),b:R10(),tipus:'directa'});}
  const c=$('#fitxa-contingut');c.innerHTML='';
  fets.forEach(f=>{const d=document.createElement('div');d.className='fitxa-item';
-  d.textContent=f.tipus==='inversa'?`___ × ${f.b} = ${f.a*f.b}`:`${f.a} × ${f.b} = ____`;c.appendChild(d);});
+  d.textContent=f.tipus==='inversa'?`___ × ${f.b} = ${f.a*f.b}`:f.tipus==='divisio'?`${f.a*f.b} ÷ ${Math.random()<.5?f.a:f.b} = ____`:`${f.a} × ${f.b} = ____`;c.appendChild(d);});
  $('#f-nom').textContent=perfil().nom;$('#f-data').textContent=new Date().toLocaleDateString('ca-ES');
  mostra('#sc-fitxa');}
 $('#f-imprimir').onclick=()=>window.print();
 $('#f-pdf').onclick=()=>window.print();
 $('#f-enrere').onclick=()=>{renderInici();mostra('#sc-inici');};
 $('#btn-csv').onclick=()=>baixa('\uFEFF'+UI.csvProgres(),`progres-${nomFitxer(perfil().nom)}.csv`,'text/csv');
+
+/* ---------- accessibilitat (per perfil) ---------- */
+const ACC_DEF={font:'estandard',espai:false,mida:0,teclat:false,formes:false,calma:false,so:false,vibra:false,parla:false};
+const MIDES=[100,112.5,125];
+let acc={...ACC_DEF};
+function aplicaAcc(){const b=document.body;
+ b.classList.toggle('f-dislexia',acc.font==='dislexia');b.classList.toggle('espai',acc.espai);
+ b.classList.toggle('tecles-grans',acc.teclat);b.classList.toggle('formes',acc.formes);b.classList.toggle('calma',acc.calma);
+ document.documentElement.style.fontSize=MIDES[acc.mida]+'%';
+ const bp=$('#btn-parla');if(bp)bp.hidden=!acc.parla;}
+function carregaAcc(){const p=perfil();acc=Object.assign({},ACC_DEF,p&&p.acc||{});aplicaAcc();}
+function reiniciaAcc(){acc={...ACC_DEF};aplicaAcc();}
+function desaAcc(){const p=perfil();if(p){p.acc={...acc};desa(LSK,perfils);}aplicaAcc();}
+let audioCtx=null;
+function fesSo(ok){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+ audioCtx=audioCtx||new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+ const t0=audioCtx.currentTime,notes=ok?[[660,0],[990,.11]]:[[196,0],[147,.15]];
+ notes.forEach(([f,d])=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=ok?'sine':'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t0+d);g.gain.exponentialRampToValueAtTime(.2,t0+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+d+.18);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t0+d);o.stop(t0+d+.2);});}catch(e){}}
+function fesVibrar(ok){try{if(navigator.vibrate)navigator.vibrate(ok?30:[70,40,70]);}catch(e){}}
+function sensorial(ok){if(acc.so)fesSo(ok);if(acc.vibra)fesVibrar(ok);}
+const textVeu=p=>{if(p.tipus==='divisio'){const x=divInfo(p);return `${x.dd} entre ${x.dv}`;}
+ if(p.tipus==='inversa')return `Quin nombre per ${p.b} fa ${p.a*p.b}`;return `${p.a} per ${p.b}`;};
+function parla(p){if(!acc.parla||!('speechSynthesis' in window))return;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(textVeu(p));u.lang='ca-ES';u.rate=.9;
+  const v=speechSynthesis.getVoices().find(v=>/^ca/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}catch(e){}}
+$('#btn-parla').onclick=()=>{if(preguntaActual)parla(preguntaActual);};
+const ACC_SWITCHES=[['espai','#acc-espai'],['teclat','#acc-teclat'],['formes','#acc-formes'],['calma','#acc-calma'],['so','#acc-so'],['vibra','#acc-vibra'],['parla','#acc-parla']];
+function renderAcc(){$('#acc-nom').textContent=perfil().nom;
+ $$('#chips-font .chip').forEach(b=>b.classList.toggle('actiu',b.dataset.v===acc.font));
+ $$('#chips-mida .chip').forEach(b=>b.classList.toggle('actiu',+b.dataset.v===acc.mida));
+ ACC_SWITCHES.forEach(([k,sel])=>$(sel).checked=!!acc[k]);
+ const vib=!!navigator.vibrate;$('#acc-vibra').disabled=!vib;$('#acc-vibra-nota').hidden=vib;
+ const veu='speechSynthesis' in window;$('#acc-parla').disabled=!veu;$('#acc-parla-nota').hidden=veu;}
+$$('#chips-font .chip').forEach(b=>b.onclick=()=>{acc.font=b.dataset.v;desaAcc();renderAcc();});
+$$('#chips-mida .chip').forEach(b=>b.onclick=()=>{acc.mida=+b.dataset.v;desaAcc();renderAcc();});
+ACC_SWITCHES.forEach(([k,sel])=>$(sel).onchange=e=>{acc[k]=e.target.checked;desaAcc();
+ if(acc[k]&&k==='so')fesSo(true);if(acc[k]&&k==='vibra')fesVibrar(true);if(acc[k]&&k==='parla')parla({a:6,b:7,tipus:'directa'});});
+$('#btn-acc').onclick=()=>{renderAcc();mostra('#sc-acc');};
+$('#acc-enrere').onclick=()=>{renderInici();mostra('#sc-inici');};
 
 /* ---------- descàrregues ---------- */
 const nomFitxer=n=>String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_').slice(0,20)||'perfil';
@@ -596,7 +698,8 @@ function netejaPerfil(p){
   rellotge20:!!p.rellotge20,
   desblocades:Array.isArray(p.desblocades)?[...new Set(p.desblocades.map(Number).filter(t=>TAULES.includes(t)))]:[],
   medalles:Array.isArray(p.medalles)?[...new Set(p.medalles.filter(m=>ids.includes(m)))]:[],
-  perfectes:num(p.perfectes,0,1e6),repAssos:num(p.repAssos,0,1e6)};
+  perfectes:num(p.perfectes,0,1e6),repAssos:num(p.repAssos,0,1e6),divisions:num(p.divisions,0,1e6)};
+ if(p.acc&&typeof p.acc==='object'){const a=p.acc;r.acc={font:a.font==='dislexia'?'dislexia':'estandard',espai:!!a.espai,mida:[0,1,2].includes(a.mida)?a.mida:0,teclat:!!a.teclat,formes:!!a.formes,calma:!!a.calma,so:!!a.so,vibra:!!a.vibra,parla:!!a.parla};}
  if(num(p.ultima,0,8.64e15)>0)r.ultima=num(p.ultima,0,8.64e15);
  if(AVATARS.some(a=>a[0]===p.avatar))r.avatar=p.avatar;
  return r;}
@@ -604,7 +707,7 @@ function netejaSrs(o){
  if(!o||typeof o!=='object'||!o.cards||typeof o.cards!=='object')return null;
  const cards={};
  for(const [k,c] of Object.entries(o.cards)){
-  if(!/^i?\d{1,2}x\d{1,2}$/.test(k)||!c||typeof c!=='object')continue;
+  if(!/^[id]?\d{1,2}x\d{1,2}$/.test(k)||!c||typeof c!=='object')continue;
   const respostes=Math.round(num(c.respostes,0,1e6));
   cards[k]={ease:num(c.ease,1.3,2.8,2.5),step:Math.round(num(c.step,0,1,0)),interval:Math.round(num(c.interval,0,90)),
    state:c.state==='review'?'review':'learning',due:num(c.due,0,8.64e15,Date.now()),reps:Math.round(num(c.reps,0,1e6)),
@@ -703,7 +806,7 @@ function csvDetall(){
  let cap=null;const rows=[];
  perfils.forEach(p=>{const l=SRS.csv(p.id).split('\n');if(!cap)cap='alumne;'+l[0];l.slice(1).forEach(x=>rows.push(celCsv(p.nom)+';'+x));});
  return '\uFEFF'+[cap||'alumne;fact;tipus;estat;reps;encerts;errors;ease;interval_dies;proper_repas;retencio_%',...rows].join('\n');}
-$('#c-enrere').onclick=()=>{renderPerfils();mostra('#sc-perfils');};
+$('#c-enrere').onclick=()=>{reiniciaAcc();renderPerfils();mostra('#sc-perfils');};
 $('#c-csv-resum').onclick=()=>{if(!perfils.length)return alert('Encara no hi ha cap perfil.');baixa(csvResum(),`classe-resum-${dataISO()}.csv`,'text/csv');};
 $('#c-csv-detall').onclick=()=>{if(!perfils.length)return alert('Encara no hi ha cap perfil.');baixa(csvDetall(),`classe-detall-${dataISO()}.csv`,'text/csv');};
 
